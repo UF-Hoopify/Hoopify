@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to find nearby basketball courts.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We need your location to find nearby basketball courts."
+      }
     },
     "android": {
       "adaptiveIcon": {
