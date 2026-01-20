@@ -1,10 +1,4 @@
-export interface Court {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  available: number;
-}
+import { Court } from "../types/CourtSearchTypes";
 
 export const MOCK_COURTS: Court[] = [
   {
@@ -12,6 +6,7 @@ export const MOCK_COURTS: Court[] = [
     name: "Student Recreation Center",
     lat: 29.6501204,
     lng: -82.3561299,
+    address: "Gainesville, FL",
     available: 12,
   },
   {
@@ -19,6 +14,7 @@ export const MOCK_COURTS: Court[] = [
     name: "West Side Park",
     lat: 29.6501288,
     lng: -82.3552862,
+    address: "Gainesville, FL",
     available: 5,
   },
   {
@@ -26,6 +22,7 @@ export const MOCK_COURTS: Court[] = [
     name: "Stephen O'Connell Center",
     lat: 29.6494276,
     lng: -82.3560391,
+    address: "Gainesville, FL",
     available: 0,
   },
 ];
