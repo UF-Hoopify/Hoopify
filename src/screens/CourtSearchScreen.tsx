@@ -3,8 +3,8 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Region } from "react-native-maps";
 import { CourtBottomSheet } from "../components/CourtSearch/CourtBottomSheet";
 import { GameMap } from "../components/CourtSearch/GameMap";
-import { Court } from "../data/mockCourts";
 import { searchNearbyCourts } from "../services/GooglePlacesService";
+import { Court } from "../types/CourtSearchTypes";
 
 export default function CourtSearchScreen() {
   const [courts, setCourts] = useState<Court[]>([]);
@@ -23,11 +23,6 @@ export default function CourtSearchScreen() {
     };
   }, []);
 
-  const calculateRadius = (latitudeDelta: number): number => {
-    const rawRadius = (latitudeDelta * 111000) / 2;
-    return Math.min(rawRadius, 24140);
-  };
-
   const hasMapMovedSignificantly = (newRegion: Region): boolean => {
     if (!lastSearchedRegion.current) return true;
 
@@ -37,8 +32,11 @@ export default function CourtSearchScreen() {
     const lngDiff = Math.abs(
       newRegion.longitude - lastSearchedRegion.current.longitude
     );
+    const zoomDiff = Math.abs(
+      newRegion.latitudeDelta - lastSearchedRegion.current.latitudeDelta
+    );
 
-    return latDiff > 0.002 || lngDiff > 0.002;
+    return latDiff > 0.002 || lngDiff > 0.002 || zoomDiff > 0.002;
   };
 
   const handleRegionChangeComplete = useCallback((region: Region) => {
@@ -57,12 +55,8 @@ export default function CourtSearchScreen() {
       abortController.current = controller;
 
       try {
-        const radius = calculateRadius(region.latitudeDelta);
-
         const fetchedCourts = await searchNearbyCourts(
-          region.latitude,
-          region.longitude,
-          radius,
+          region,
           controller.signal
         );
 

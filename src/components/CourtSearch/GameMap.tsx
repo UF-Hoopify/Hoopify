@@ -1,40 +1,84 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
-import { Court } from "../../data/mockCourts";
+import MapView, { Marker, Region } from "react-native-maps";
+import { Court } from "../../types/CourtSearchTypes";
 
 interface GameMapProps {
-  onRegionChange: (region: Region) => void;
+  onRegionChangeComplete: (region: Region) => void;
   courts: Court[];
+  isSearching?: boolean;
 }
 
-export const GameMap: React.FC<GameMapProps> = ({ onRegionChange, courts }) => {
+const INITIAL_REGION: Region = {
+  latitude: 29.6499,
+  longitude: -82.3558,
+  latitudeDelta: 0.005,
+  longitudeDelta: 0.005,
+};
+
+const MAX_MARKERS = 20;
+
+const GameMapComponent: React.FC<GameMapProps> = ({
+  onRegionChangeComplete,
+  courts = [],
+  isSearching = false,
+}) => {
+  const handleMapReady = useCallback(() => {
+    onRegionChangeComplete(INITIAL_REGION);
+  }, [onRegionChangeComplete]);
+
+  const markers = useMemo(() => {
+    if (isSearching) return null;
+
+    const seenIds = new Set<string>();
+
+    return courts
+      .slice(0, MAX_MARKERS)
+      .filter((court) => {
+        if (!court?.id) return false;
+        if (seenIds.has(court.id)) return false;
+
+        const valid =
+          typeof court.lat === "number" &&
+          typeof court.lng === "number" &&
+          !Number.isNaN(court.lat) &&
+          !Number.isNaN(court.lng);
+
+        if (!valid) return false;
+
+        seenIds.add(court.id);
+        return true;
+      })
+      .map((court) => (
+        <Marker
+          key={court.id}
+          coordinate={{
+            latitude: court.lat,
+            longitude: court.lng,
+          }}
+          title={court.name}
+          pinColor="#F97316"
+          tracksViewChanges={false}
+        />
+      ));
+  }, [courts, isSearching]);
+
   return (
     <View style={styles.container}>
       <MapView
-        provider={PROVIDER_GOOGLE}
         style={styles.map}
-        initialRegion={{
-          latitude: 29.6499,
-          longitude: -82.3558,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
-        }}
-        onRegionChangeComplete={onRegionChange}
+        initialRegion={INITIAL_REGION}
+        onRegionChangeComplete={onRegionChangeComplete}
+        moveOnMarkerPress={false}
+        onMapReady={handleMapReady}
       >
-        {courts.map((court) => (
-          <Marker
-            key={court.id}
-            coordinate={{ latitude: court.lat, longitude: court.lng }}
-            title={court.name}
-            description={`${court.available} hoopers here`}
-            pinColor="#F97316"
-          />
-        ))}
+        {markers}
       </MapView>
     </View>
   );
 };
+
+export const GameMap = React.memo(GameMapComponent);
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },

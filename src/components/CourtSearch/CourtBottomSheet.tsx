@@ -1,13 +1,13 @@
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Court } from "../../data/mockCourts";
+import { Court } from "../../types/CourtSearchTypes";
 
 interface CourtBottomSheetProps {
   courts: Court[];
 }
 
-export const CourtBottomSheet: React.FC<CourtBottomSheetProps> = ({
+const CourtBottomSheetComponent: React.FC<CourtBottomSheetProps> = ({
   courts,
 }) => {
   const snapPoints = useMemo(() => ["15%", "90%"], []);
@@ -38,6 +38,8 @@ export const CourtBottomSheet: React.FC<CourtBottomSheetProps> = ({
     </BottomSheet>
   );
 };
+
+export const CourtBottomSheet = React.memo(CourtBottomSheetComponent);
 
 const styles = StyleSheet.create({
   background: {
