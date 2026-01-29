@@ -54,7 +54,7 @@ export async function searchNearbyCourts(
         },
         // TODO: more strick search paramters
         body: JSON.stringify({
-          textQuery: "basketball court",
+          textQuery: "basketball courts near me",
           locationRestriction: {
             rectangle: {
               low: low,
