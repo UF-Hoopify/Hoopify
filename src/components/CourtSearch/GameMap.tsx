@@ -7,6 +7,8 @@ interface GameMapProps {
   onRegionChangeComplete: (region: Region) => void;
   courts: Court[];
   isSearching?: boolean;
+  onCourtSelect: (court: Court) => void;
+  onMapPress?: () => void;
 }
 
 const INITIAL_REGION: Region = {
@@ -16,12 +18,15 @@ const INITIAL_REGION: Region = {
   longitudeDelta: 0.005,
 };
 
+// TODO: Make MAX_MARKERS configurable via props if needed
 const MAX_MARKERS = 20;
 
 const GameMapComponent: React.FC<GameMapProps> = ({
   onRegionChangeComplete,
   courts = [],
   isSearching = false,
+  onCourtSelect,
+  onMapPress,
 }) => {
   const handleMapReady = useCallback(() => {
     onRegionChangeComplete(INITIAL_REGION);
@@ -59,9 +64,13 @@ const GameMapComponent: React.FC<GameMapProps> = ({
           title={court.name}
           pinColor="#F97316"
           tracksViewChanges={false}
+          onPress={(e) => {
+            e.stopPropagation();
+            onCourtSelect(court);
+          }}
         />
       ));
-  }, [courts, isSearching]);
+  }, [courts, isSearching, onCourtSelect]);
 
   return (
     <View style={styles.container}>
