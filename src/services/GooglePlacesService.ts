@@ -8,6 +8,18 @@ interface GooglePlace {
   displayName?: { text: string };
   location: { latitude: number; longitude: number };
   formattedAddress?: string;
+  rating?: number;
+  userRatingCount?: number;
+  photos?: {
+    name: string;
+    widthPx: number;
+    heightPx: number;
+    authorAttributions?: {
+      displayName: string;
+      uri: string;
+      photoUri: string;
+    }[];
+  }[];
 }
 
 interface GooglePlacesResponse {
@@ -50,7 +62,7 @@ export async function searchNearbyCourts(
           "Content-Type": "application/json",
           "X-Goog-Api-Key": GOOGLE_API_KEY,
           "X-Goog-FieldMask":
-            "places.id,places.displayName,places.location,places.formattedAddress",
+            "places.id,places.displayName,places.location,places.formattedAddress,places.photos,places.rating,places.userRatingCount",
         },
         // TODO: more strick search paramters
         body: JSON.stringify({
@@ -87,6 +99,11 @@ export async function searchNearbyCourts(
       lng: place.location.longitude,
       address: place.formattedAddress ?? "",
       available: 0,
+      rating: place.rating,
+      totalRatings: place.userRatingCount,
+      photos: place.photos
+        ? place.photos.slice(0, 3).map((p) => getPhotoUrl(p.name))
+        : [],
     }));
   } catch (error) {
     if ((error as Error).name === "AbortError") {
