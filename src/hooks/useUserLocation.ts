@@ -1,7 +1,6 @@
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 
-// Define the shape of our location state
 export interface UserLocation {
   latitude: number;
   longitude: number;

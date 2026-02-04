@@ -14,14 +14,14 @@ import {
 import { Court } from "../../types/CourtSearchTypes";
 
 const { width } = Dimensions.get("window");
-// Card height logic: Fixed height for consistency
+
 const CARD_HEIGHT = 280;
 const IMAGE_HEIGHT = 180;
-const defaultCourtImg = require("../../../assets/images/basketball-game-concept.jpg");
-
+const stockCourtImg =
+  "https://media.istockphoto.com/id/1551914538/photo/basketball-court-on-3d-illustration.jpg?s=612x612&w=0&k=20&c=zbzckGLILsJvqdvWsS6N0RQn8Z9i6n1iTN4VtSOCWHc=";
 interface CourtListingProps {
   court: Court;
-  userLocation?: { lat: number; lng: number }; // Optional: To calculate "0.2 mi"
+  userLocation?: { lat: number; lng: number };
   onPress: () => void;
 }
 
@@ -33,19 +33,16 @@ export const CourtListing: React.FC<CourtListingProps> = ({
   const [activeSlide, setActiveSlide] = useState(0);
 
   const images =
-    court.photos && court.photos.length > 0 ? court.photos : [defaultCourtImg]; // Local images are used directly
+    court.photos && court.photos.length > 0 ? court.photos : [stockCourtImg];
 
-  // 2. Carousel Logic
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
     const index = event.nativeEvent.contentOffset.x / slideSize;
     setActiveSlide(Math.round(index));
   };
 
-  // 3. Distance Helper (Placeholder logic if userLocation is missing)
   const getDistance = () => {
     if (!userLocation) return "Nearby";
-    // Simple placeholder. In real app, use Haversine formula here.
     return "1.2 mi away";
   };
 
@@ -55,7 +52,6 @@ export const CourtListing: React.FC<CourtListingProps> = ({
       onPress={onPress}
       style={styles.cardContainer}
     >
-      {/* --- SECTION 1: IMAGE CAROUSEL --- */}
       <View style={styles.imageContainer}>
         <ScrollView
           horizontal
@@ -70,12 +66,9 @@ export const CourtListing: React.FC<CourtListingProps> = ({
           ))}
         </ScrollView>
 
-        {/* Heart Icon Overlay */}
         <TouchableOpacity style={styles.heartButton}>
           <Ionicons name="heart-outline" size={20} color="#FFF" />
         </TouchableOpacity>
-
-        {/* Pagination Dots */}
         <View style={styles.pagination}>
           {images.map((_, i) => (
             <View
@@ -86,9 +79,7 @@ export const CourtListing: React.FC<CourtListingProps> = ({
         </View>
       </View>
 
-      {/* --- SECTION 2: METADATA --- */}
       <View style={styles.infoContainer}>
-        {/* Row A: Name & Rating */}
         <View style={styles.rowBetween}>
           <Text style={styles.courtName} numberOfLines={1}>
             {court.name}
@@ -101,14 +92,11 @@ export const CourtListing: React.FC<CourtListingProps> = ({
           </View>
         </View>
 
-        {/* Row B: Address */}
         <Text style={styles.addressText} numberOfLines={1}>
           {court.address}
         </Text>
 
-        {/* Row C: Status Badges & Distance */}
         <View style={[styles.rowBetween, { marginTop: 12 }]}>
-          {/* Example Status Badge (You can make this dynamic later) */}
           <View style={[styles.statusBadge, { backgroundColor: "#3f3f46" }]}>
             <Ionicons
               name="time-outline"
@@ -121,7 +109,6 @@ export const CourtListing: React.FC<CourtListingProps> = ({
             </Text>
           </View>
 
-          {/* Distance with Arrow */}
           <View style={styles.distanceRow}>
             <Text style={styles.distanceText}>{getDistance()}</Text>
             <Ionicons name="chevron-forward" size={14} color="#666" />
@@ -132,23 +119,21 @@ export const CourtListing: React.FC<CourtListingProps> = ({
   );
 };
 
-// Styles matching your dark theme screenshot
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: "#1c1c1e", // Dark card background
+    backgroundColor: "#1c1c1e",
     borderRadius: 16,
     overflow: "hidden",
-    marginBottom: 20, // Spacing between list items
+    marginBottom: 20,
     height: CARD_HEIGHT,
   },
-  // Images
   imageContainer: {
     height: IMAGE_HEIGHT,
     position: "relative",
   },
   scrollView: { flex: 1 },
   image: {
-    width: width - 32, // Full width minus list padding
+    width: width - 32,
     height: IMAGE_HEIGHT,
     resizeMode: "cover",
   },
@@ -176,7 +161,6 @@ const styles = StyleSheet.create({
   activeDot: {
     backgroundColor: "#FFF",
   },
-  // Info
   infoContainer: {
     padding: 12,
     flex: 1,
@@ -209,7 +193,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   addressText: {
-    color: "#a1a1aa", // Light gray
+    color: "#a1a1aa",
     fontSize: 13,
     marginTop: 4,
   },
