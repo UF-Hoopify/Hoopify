@@ -12,21 +12,26 @@ import LoginScreen from "../src/screens/LoginScreen";
 import CourtSearchScreen from "../src/screens/CourtSearchScreen";
 import UserProfileScreen from "../src/screens/UserProfileScreen";
 import ChatScreen from "../src/screens/ChatScreen";
+import FeedScreen from "../src/screens/FeedScreen";         // <--- NEW
+import CreatePostScreen from "../src/screens/CreatePostScreen"; // <--- NEW
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// --- 1. THE MAIN APP TABS (Profile + Explore) ---
+// --- THE MAIN APP TABS ---
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: "#F97316", // Hoopify Orange
+        tabBarActiveTintColor: "#F97316",
         tabBarInactiveTintColor: "gray",
+        tabBarStyle: { paddingBottom: 5, paddingTop: 5 },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: any;
-          if (route.name === "Profile") {
+          if (route.name === "Feed") {
+            iconName = focused ? "basketball" : "basketball-outline";
+          } else if (route.name === "Profile") {
             iconName = focused ? "person" : "person-outline";
           } else if (route.name === "Explore") {
             iconName = focused ? "map" : "map-outline";
@@ -35,43 +40,35 @@ function MainTabs() {
         },
       })}
     >
-      <Tab.Screen name="Profile" component={UserProfileScreen} />
+      <Tab.Screen name="Feed" component={FeedScreen} />
       <Tab.Screen name="Explore" component={CourtSearchScreen} />
+      <Tab.Screen name="Profile" component={UserProfileScreen} />
     </Tab.Navigator>
   );
 }
 
-// --- 2. THE DEV MENU (Cleaned Up) ---
+// --- DEV MENU ---
 function DevMenu({ navigation }: any) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🏀 Hoopify Dev Mode</Text>
       <View style={styles.buttonContainer}>
-        
-        <Text style={styles.sectionLabel}>Shortcuts</Text>
+        <Button 
+          title="🚀 Go to App (Feed)" 
+          color="#F97316"
+          onPress={() => navigation.navigate('MainTabs')} 
+        />
+        <View style={styles.divider} />
         <Button 
           title="⬅️ Back to Landing Page" 
           onPress={() => navigation.navigate('Landing')} 
-        />
-        
-        <View style={styles.divider} />
-        
-        <Text style={styles.sectionLabel}>Direct Access</Text>
-        <Button 
-          title="📍 Open Map (Explore Tab)" 
-          onPress={() => navigation.navigate('MainTabs', { screen: 'Explore' })} 
-        />
-        <View style={{height: 10}} />
-        <Button 
-          title="👤 Open Profile (Profile Tab)" 
-          onPress={() => navigation.navigate('MainTabs', { screen: 'Profile' })} 
         />
       </View>
     </View>
   );
 }
 
-// --- 3. ROOT NAVIGATION ---
+// --- ROOT NAVIGATION ---
 export default function Index() {
   return (
     <NavigationIndependentTree>
@@ -87,13 +84,15 @@ export default function Index() {
           <Stack.Screen name="MainTabs" component={MainTabs} />
 
           {/* Standalone Screens */}
+          <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: true, title: 'Chat' }} />
+          
+          {/* Create Post (Modal Style) */}
           <Stack.Screen 
-            name="ChatScreen" 
-            component={ChatScreen} 
-            options={{ headerShown: true, title: 'Chat', headerTintColor: '#F97316' }} 
+            name="CreatePost" 
+            component={CreatePostScreen} 
+            options={{ presentation: 'modal', headerShown: false }} 
           />
           
-          {/* Dev Menu */}
           <Stack.Screen name="DevMenu" component={DevMenu} />
 
         </Stack.Navigator>
@@ -107,5 +106,4 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 30 },
   buttonContainer: { width: "80%" },
   divider: { height: 1, backgroundColor: "#eee", marginVertical: 20 },
-  sectionLabel: { fontSize: 12, color: "#666", marginBottom: 5, textTransform: 'uppercase', fontWeight: '600' }
 });
