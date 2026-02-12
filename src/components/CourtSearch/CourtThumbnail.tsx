@@ -35,8 +35,7 @@ export const CourtSearchThumbnail: React.FC<CourtSearchThumbnailProps> = ({
 }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const placeholderImages = [
-    "https://images.unsplash.com/photo-1546519638-68e109498ee2?q=80&w=1000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1519861531473-920026393112?q=80&w=1000&auto=format&fit=crop",
+    "https://media.istockphoto.com/id/1551914538/photo/basketball-court-on-3d-illustration.jpg?s=612x612&w=0&k=20&c=zbzckGLILsJvqdvWsS6N0RQn8Z9i6n1iTN4VtSOCWHc=",
   ];
 
   const imagesToDisplay =
@@ -50,6 +49,7 @@ export const CourtSearchThumbnail: React.FC<CourtSearchThumbnailProps> = ({
 
   return (
     <View style={styles.container}>
+      {/* --- CAROUSEL SECTION --- */}
       <View style={styles.carouselContainer}>
         <ScrollView
           horizontal
@@ -68,7 +68,6 @@ export const CourtSearchThumbnail: React.FC<CourtSearchThumbnailProps> = ({
 
         <View style={styles.badgeContainer}>
           <Text style={styles.badgeText}>Elite Court</Text>
-          {/*TODO: Dynamic Badge*/}
         </View>
 
         <View style={styles.actionButtons}>
@@ -105,6 +104,7 @@ export const CourtSearchThumbnail: React.FC<CourtSearchThumbnailProps> = ({
         </View>
       </View>
 
+      {/* --- META / INFO SECTION --- */}
       <View style={styles.metaContainer}>
         <View style={styles.headerRow}>
           <Text style={styles.courtName} numberOfLines={1}>
@@ -133,20 +133,28 @@ export const CourtSearchThumbnail: React.FC<CourtSearchThumbnailProps> = ({
           {formattedDistance} • {court.address.split(",")[0]}
         </Text>
 
-        <View style={styles.widgetsRow}>
-          {["3v3", "5v5", "Lights", "Outdoor"].map((tag, i) => (
-            <View key={i} style={styles.widgetTag}>
-              <Text style={styles.widgetText}>{tag}</Text>
-            </View>
-          ))}
+        {/* --- NEW FOOTER ROW (Widgets + Action) --- */}
+        <View style={styles.footerRow}>
+          <View style={styles.widgetsRow}>
+            {["Lights", "Outdoor"].map((tag, i) => (
+              <View key={i} style={styles.widgetTag}>
+                <Text style={styles.widgetText}>{tag}</Text>
+              </View>
+            ))}
 
-          {court.closingTime && (
-            <View style={[styles.widgetTag, styles.alertTag]}>
-              <Text style={[styles.widgetText, styles.alertText]}>
-                {court.closingTime}
-              </Text>
-            </View>
-          )}
+            {court.closingTime && (
+              <View style={[styles.widgetTag, styles.alertTag]}>
+                <Text style={[styles.widgetText, styles.alertText]}>
+                  {court.closingTime}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <TouchableOpacity style={styles.openCourtAction} onPress={onPinPress}>
+            <Text style={styles.openCourtText}>Open Court</Text>
+            <Ionicons name="arrow-forward" size={16} color="#111" />
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -161,7 +169,6 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
@@ -169,7 +176,6 @@ const styles = StyleSheet.create({
     elevation: 10,
     overflow: "hidden",
   },
-
   carouselContainer: {
     position: "relative",
     height: CAROUSEL_HEIGHT,
@@ -186,7 +192,6 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "cover",
   },
-
   badgeContainer: {
     position: "absolute",
     top: 12,
@@ -265,10 +270,11 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
-
   metaContainer: {
     padding: 16,
     paddingTop: 12,
+    // FIX: Reduced paddingBottom since button is no longer absolute
+    paddingBottom: 16,
   },
   headerRow: {
     flexDirection: "row",
@@ -307,11 +313,19 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 12,
   },
-
+  footerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 4,
+  },
   widgetsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
+    // Allow widgets to shrink if needed so they don't push button offscreen
+    flex: 1,
+    marginRight: 8,
   },
   widgetTag: {
     backgroundColor: "#F3F4F6",
@@ -324,10 +338,17 @@ const styles = StyleSheet.create({
     color: "#374151",
     fontWeight: "600",
   },
-  alertTag: {
-    backgroundColor: "#FEF2F2",
+  alertTag: { backgroundColor: "#FEF2F2" },
+  alertText: { color: "#EF4444" },
+  openCourtAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 4,
   },
-  alertText: {
-    color: "#EF4444",
+  openCourtText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#111",
   },
 });
