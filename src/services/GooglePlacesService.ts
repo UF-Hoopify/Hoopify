@@ -127,15 +127,13 @@ export async function fetchCourtDetails(
           "Content-Type": "application/json",
           "X-Goog-Api-Key": GOOGLE_API_KEY,
           "X-Goog-FieldMask":
-            "id,displayName,location,formattedAddress,photos,rating,userRatingCount,currentOpeningHours",
+            "id,displayName,location,formattedAddress,photos,rating,userRatingCount,currentOpeningHours,regularOpeningHours",
         },
       },
     );
 
     const data = await response.json();
 
-    const isOpen = data.currentOpeningHours?.openNow ?? false;
-    const closingTime = isOpen ? "Open" : "Closed";
     // TODO: parse actual basketball court photos
     const photoUrls =
       data.photos?.slice(0, 3).map((p: any) => getPhotoUrl(p.name)) || [];
@@ -148,10 +146,13 @@ export async function fetchCourtDetails(
       address: data.formattedAddress ?? "",
       available: 0,
       photos: photoUrls,
-      rating: data.rating,
-      totalRatings: data.userRatingCount,
-      isOpenNow: isOpen,
-      closingTime: closingTime,
+      rating: data.rating ?? null,
+      totalRatings: data.userRatingCount ?? 0,
+      isOpenNow:
+        data.currentOpeningHours?.openNow ??
+        data.regularOpeningHours?.openNow ??
+        false,
+      hours: data.regularOpeningHours?.weekdayDescriptions ?? [],
     };
   } catch (error) {
     console.error("Failed to fetch court details:", error);

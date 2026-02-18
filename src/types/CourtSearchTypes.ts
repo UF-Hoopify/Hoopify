@@ -15,5 +15,5 @@ export interface CourtDetails extends Court {
   rating?: number;
   totalRatings?: number;
   isOpenNow?: boolean;
-  closingTime?: string;
+  hours?: string[];
 }
