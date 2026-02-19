@@ -34,13 +34,11 @@ export const CourtServerThumbnail = ({
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
-  // If no photos, use a placeholder
   const displayPhotos =
     photos.length > 0
       ? photos
       : ["https://maps.gstatic.com/tactile/pane/default_geocode-2x.png"];
 
-  // Handle Scroll to update dots
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
     const index = event.nativeEvent.contentOffset.x / slideSize;
@@ -48,7 +46,6 @@ export const CourtServerThumbnail = ({
     setActiveIndex(roundIndex);
   };
 
-  // Handle Manual Arrow Clicks
   const scrollToIndex = (index: number) => {
     if (index >= 0 && index < displayPhotos.length) {
       flatListRef.current?.scrollToIndex({ index, animated: true });
@@ -157,10 +154,9 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH,
     height: THUMBNAIL_HEIGHT,
   },
-  // --- TOP LAYER ---
   topLayer: {
     position: "absolute",
-    top: 50, // Safe Area spacing
+    top: 50,
     left: 0,
     right: 0,
     flexDirection: "row",
@@ -172,11 +168,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.3)", // Semi-transparent backing
+    backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "center",
     alignItems: "center",
   },
-  // --- ARROWS ---
   arrowButton: {
     position: "absolute",
     top: "50%",
@@ -191,14 +186,13 @@ const styles = StyleSheet.create({
   },
   leftArrow: { left: 10 },
   rightArrow: { right: 10 },
-  // --- BOTTOM LAYER ---
   bottomLayer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     padding: 20,
-    paddingTop: 40, // For gradient fade
+    paddingTop: 40,
   },
   infoContainer: {
     marginBottom: 10,
@@ -224,7 +218,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontSize: 14,
   },
-  // --- PAGINATION ---
   pagination: {
     flexDirection: "row",
     justifyContent: "center",
@@ -237,7 +230,7 @@ const styles = StyleSheet.create({
   },
   activeDot: {
     width: 20,
-    backgroundColor: "#F97316", // Hoopify Orange
+    backgroundColor: "#F97316",
   },
   inactiveDot: {
     width: 6,
