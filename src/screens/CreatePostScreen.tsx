@@ -4,35 +4,25 @@ import {
   ScrollView, ActivityIndicator, Alert, SafeAreaView 
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { addDoc, collection, serverTimestamp, doc, getDoc } from "firebase/firestore"; // Added doc, getDoc
+// ADDED increment
+import { addDoc, collection, serverTimestamp, doc, getDoc, updateDoc, increment } from "firebase/firestore"; 
 import { db, auth } from "../config/firebaseConfig";
 import { searchNearbyCourts } from "../services/GooglePlacesService";
 
 export default function CreatePostScreen({ navigation }: any) {
-  // Form State
   const [myScore, setMyScore] = useState("");
   const [oppScore, setOppScore] = useState("");
   const [description, setDescription] = useState("");
   const [taggedFriend, setTaggedFriend] = useState(""); 
-  
-  // User State
-  const [currentUserName, setCurrentUserName] = useState("Baller"); // Default
-
-  // Court Search State
+  const [currentUserName, setCurrentUserName] = useState("Baller"); 
   const [courtQuery, setCourtQuery] = useState("");
   const [selectedCourt, setSelectedCourt] = useState<any>(null);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
 
-  const GNV_REGION = {
-    latitude: 29.6499,
-    longitude: -82.3558,
-    latitudeDelta: 0.1,
-    longitudeDelta: 0.1,
-  };
+  const GNV_REGION = { latitude: 29.6499, longitude: -82.3558, latitudeDelta: 0.1, longitudeDelta: 0.1 };
 
-  // --- NEW: Fetch Real Name from Database on Load ---
   useEffect(() => {
     const fetchUserName = async () => {
       const uid = auth.currentUser?.uid;
@@ -41,14 +31,9 @@ export default function CreatePostScreen({ navigation }: any) {
           const userDoc = await getDoc(doc(db, "users", uid));
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            // If they have a name in DB, use it. Otherwise fallback to Auth name.
-            if (userData.displayName) {
-              setCurrentUserName(userData.displayName);
-            }
+            if (userData.displayName) setCurrentUserName(userData.displayName);
           }
-        } catch (err) {
-          console.log("Error fetching name:", err);
-        }
+        } catch (err) { console.log("Error fetching name:", err); }
       }
     };
     fetchUserName();
@@ -56,18 +41,13 @@ export default function CreatePostScreen({ navigation }: any) {
 
   const handleSearchCourt = async (text: string) => {
     setCourtQuery(text);
-    if (selectedCourt && text !== selectedCourt.name) {
-      setSelectedCourt(null);
-    }
-
+    if (selectedCourt && text !== selectedCourt.name) setSelectedCourt(null);
     if (text.length > 2) {
       setIsSearching(true);
       const results = await searchNearbyCourts(GNV_REGION, text);
       setSearchResults(results);
       setIsSearching(false);
-    } else {
-      setSearchResults([]);
-    }
+    } else { setSearchResults([]); }
   };
 
   const handleSelectCourt = (court: any) => {
@@ -87,9 +67,10 @@ export default function CreatePostScreen({ navigation }: any) {
 
     setIsPosting(true);
     try {
+      // 1. Create the post
       await addDoc(collection(db, "posts"), {
         userId: auth.currentUser?.uid,
-        userName: currentUserName, // <--- USING THE FETCHED NAME NOW
+        userName: currentUserName, 
         courtName: finalCourtName,
         courtLocation: finalCourtAddress,
         myScore: myScore,
@@ -100,6 +81,13 @@ export default function CreatePostScreen({ navigation }: any) {
         likes: 0,
         comments: 0
       });
+
+      // 2. INCREMENT GAMES PLAYED FOR USER
+      if (auth.currentUser?.uid) {
+        await updateDoc(doc(db, "users", auth.currentUser.uid), {
+          "stats.gamesPlayed": increment(1)
+        });
+      }
 
       navigation.goBack();
     } catch (error) {
@@ -112,7 +100,6 @@ export default function CreatePostScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.cancelText}>Cancel</Text>
@@ -122,14 +109,12 @@ export default function CreatePostScreen({ navigation }: any) {
           {isPosting ? <ActivityIndicator color="#F97316" /> : <Text style={styles.postText}>Post</Text>}
         </TouchableOpacity>
       </View>
-
       <ScrollView style={styles.content}>
-        <Text style={styles.brandTitle}>HoopLink</Text>
+        <Text style={styles.brandTitle}>Hoopify</Text>
         <Text style={{color: '#666', marginBottom: 20}}>
           Posting as: <Text style={{fontWeight: 'bold', color: '#000'}}>{currentUserName}</Text>
         </Text>
         
-        {/* Court Selection */}
         <View style={styles.section}>
           <Text style={styles.label}>Game Location</Text>
           <View style={styles.searchContainer}>
@@ -141,15 +126,10 @@ export default function CreatePostScreen({ navigation }: any) {
               onChangeText={handleSearchCourt}
             />
           </View>
-          
           {searchResults.length > 0 && (
             <View style={styles.dropdown}>
               {searchResults.map((court) => (
-                <TouchableOpacity 
-                  key={court.id} 
-                  style={styles.dropdownItem}
-                  onPress={() => handleSelectCourt(court)}
-                >
+                <TouchableOpacity key={court.id} style={styles.dropdownItem} onPress={() => handleSelectCourt(court)}>
                   <Text style={styles.dropdownText}>{court.name}</Text>
                   <Text style={styles.dropdownSubtext}>{court.address}</Text>
                 </TouchableOpacity>
@@ -158,45 +138,25 @@ export default function CreatePostScreen({ navigation }: any) {
           )}
         </View>
 
-        {/* Scores */}
         <View style={styles.row}>
           <View style={styles.halfInput}>
             <Text style={styles.label}>Your Score</Text>
-            <TextInput 
-              style={styles.scoreInput} 
-              placeholder="0" 
-              keyboardType="numeric"
-              value={myScore}
-              onChangeText={setMyScore}
-            />
+            <TextInput style={styles.scoreInput} placeholder="0" keyboardType="numeric" value={myScore} onChangeText={setMyScore} />
           </View>
           <View style={styles.halfInput}>
             <Text style={styles.label}>Opponent Score</Text>
-            <TextInput 
-              style={styles.scoreInput} 
-              placeholder="0" 
-              keyboardType="numeric"
-              value={oppScore}
-              onChangeText={setOppScore}
-            />
+            <TextInput style={styles.scoreInput} placeholder="0" keyboardType="numeric" value={oppScore} onChangeText={setOppScore} />
           </View>
         </View>
 
-        {/* Tag Friends */}
         <View style={styles.section}>
           <Text style={styles.label}>Tag Friends (Optional)</Text>
           <View style={styles.tagInputContainer}>
             <Ionicons name="person-add-outline" size={20} color="#666" style={{marginRight: 8}}/>
-            <TextInput
-              style={styles.input}
-              placeholder="Who did you play with?"
-              value={taggedFriend}
-              onChangeText={setTaggedFriend}
-            />
+            <TextInput style={styles.input} placeholder="Who did you play with?" value={taggedFriend} onChangeText={setTaggedFriend} />
           </View>
         </View>
 
-        {/* Description */}
         <View style={styles.section}>
           <Text style={styles.label}>Game Description</Text>
           <TextInput
@@ -208,7 +168,6 @@ export default function CreatePostScreen({ navigation }: any) {
             onChangeText={setDescription}
           />
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -216,10 +175,7 @@ export default function CreatePostScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFF" },
-  header: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: "#F0F0F0"
-  },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: "#F0F0F0" },
   cancelText: { fontSize: 16, color: "#666" },
   postText: { fontSize: 16, color: "#F97316", fontWeight: "bold" },
   headerTitle: { fontSize: 18, fontWeight: "bold" },
@@ -228,28 +184,14 @@ const styles = StyleSheet.create({
   section: { marginBottom: 20 },
   label: { fontSize: 14, fontWeight: "600", color: "#333", marginBottom: 8 },
   input: { fontSize: 16, color: "#000", flex: 1 },
-  searchContainer: {
-    flexDirection: "row", alignItems: "center", backgroundColor: "#F5F5F5",
-    padding: 12, borderRadius: 8
-  },
-  tagInputContainer: {
-    flexDirection: "row", alignItems: "center", backgroundColor: "#F5F5F5",
-    padding: 12, borderRadius: 8
-  },
-  dropdown: {
-    backgroundColor: "#FFF", borderRadius: 8, marginTop: 4,
-    shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4, elevation: 4
-  },
+  searchContainer: { flexDirection: "row", alignItems: "center", backgroundColor: "#F5F5F5", padding: 12, borderRadius: 8 },
+  tagInputContainer: { flexDirection: "row", alignItems: "center", backgroundColor: "#F5F5F5", padding: 12, borderRadius: 8 },
+  dropdown: { backgroundColor: "#FFF", borderRadius: 8, marginTop: 4, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4, elevation: 4 },
   dropdownItem: { padding: 12, borderBottomWidth: 1, borderColor: "#EEE" },
   dropdownText: { fontWeight: "bold" },
   dropdownSubtext: { fontSize: 12, color: "#666" },
   row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
   halfInput: { width: "48%" },
-  scoreInput: {
-    backgroundColor: "#F5F5F5", borderRadius: 8, padding: 16, fontSize: 24,
-    fontWeight: "bold", textAlign: "center"
-  },
-  textArea: {
-    backgroundColor: "#F5F5F5", borderRadius: 8, padding: 12, height: 100, textAlignVertical: "top"
-  }
+  scoreInput: { backgroundColor: "#F5F5F5", borderRadius: 8, padding: 16, fontSize: 24, fontWeight: "bold", textAlign: "center" },
+  textArea: { backgroundColor: "#F5F5F5", borderRadius: 8, padding: 12, height: 100, textAlignVertical: "top" }
 });

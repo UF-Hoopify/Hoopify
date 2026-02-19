@@ -1,11 +1,12 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native"; // NEW
 
 export interface PostData {
   id: string;
+  userId: string; // NEW: Required to navigate to their profile
   userName: string;
-  // userAvatar removed
   courtName: string;
   courtLocation?: string;
   myScore: string;
@@ -19,22 +20,27 @@ export interface PostData {
 
 export default function PostCard({ post }: { post: PostData }) {
   const isWin = parseInt(post.myScore) > parseInt(post.opponentScore);
+  const navigation = useNavigation(); // NEW
+
+  const handlePressUser = () => {
+    // @ts-ignore
+    navigation.navigate("UserProfile", { userId: post.userId });
+  };
 
   return (
     <View style={styles.card}>
-      {/* Header - NO AVATAR NOW */}
-      <View style={styles.header}>
+      {/* Header - NOW CLICKABLE */}
+      <TouchableOpacity style={styles.header} onPress={handlePressUser}>
         <View>
           <Text style={styles.userName}>{post.userName}</Text>
           <Text style={styles.timeAgo}>Just now</Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
       <Text style={styles.gameTitle}>Game at {post.courtName}</Text>
 
       {/* Main Content Area */}
       <View style={styles.contentContainer}>
-        {/* Score Board */}
         <View style={styles.scoreBoard}>
           <View style={styles.scoreItem}>
             <Text style={styles.scoreLabel}>You</Text>
@@ -47,14 +53,12 @@ export default function PostCard({ post }: { post: PostData }) {
           </View>
         </View>
 
-        {/* Map/Location Placeholder */}
         <View style={styles.locationBadge}>
           <Ionicons name="location-sharp" size={16} color="#F97316" />
           <Text style={styles.locationText}>{post.courtLocation || "Gainesville, FL"}</Text>
         </View>
       </View>
 
-      {/* Tagged Friends */}
       {post.taggedFriends.length > 0 && (
         <View style={styles.taggedSection}>
           <Ionicons name="basketball-outline" size={16} color="#F97316" />
@@ -64,48 +68,26 @@ export default function PostCard({ post }: { post: PostData }) {
         </View>
       )}
 
-      {/* Description Body */}
       {post.description ? (
         <Text style={styles.descriptionText}>{post.description}</Text>
       ) : null}
 
-      {/* Stats/Actions */}
       <View style={styles.footer}>
         <Text style={styles.statText}>🏀 {post.likes || 0}</Text>
         <Text style={styles.statText}>💬 {post.comments || 0}</Text>
-        <TouchableOpacity style={{marginLeft: 'auto'}}>
-          <Ionicons name="share-outline" size={20} color="#666" />
-        </TouchableOpacity>
       </View>
     </View>
   );
 }
 
+// ... Keep your existing styles for PostCard ...
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#FFF",
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: "#F0F0F0",
-  },
+  card: { backgroundColor: "#FFF", marginBottom: 16, padding: 16, borderRadius: 16, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, borderWidth: 1, borderColor: "#F0F0F0" },
   header: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
-  // Removed avatar style
   userName: { fontWeight: "bold", fontSize: 16, color: "#333" },
   timeAgo: { color: "#999", fontSize: 12 },
   gameTitle: { fontWeight: "800", fontSize: 18, marginBottom: 12, color: "#111" },
-  contentContainer: {
-    backgroundColor: "#F9FAFB",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-  },
+  contentContainer: { backgroundColor: "#F9FAFB", borderRadius: 12, padding: 16, marginBottom: 12 },
   scoreBoard: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
   scoreItem: { alignItems: "center" },
   scoreLabel: { fontSize: 12, color: "#666", marginBottom: 4, textTransform: "uppercase" },

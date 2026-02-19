@@ -12,30 +12,29 @@ import LoginScreen from "../src/screens/LoginScreen";
 import CourtSearchScreen from "../src/screens/CourtSearchScreen";
 import UserProfileScreen from "../src/screens/UserProfileScreen";
 import ChatScreen from "../src/screens/ChatScreen";
-import FeedScreen from "../src/screens/FeedScreen";         // <--- NEW
-import CreatePostScreen from "../src/screens/CreatePostScreen"; // <--- NEW
+import FeedScreen from "../src/screens/FeedScreen";         
+import CreatePostScreen from "../src/screens/CreatePostScreen"; 
+import AddFriendsScreen from "../src/screens/AddFriendsScreen"; 
+// NEW IMPORTS
+import UserGamesScreen from "../src/screens/UserGamesScreen";
+import SinglePostScreen from "../src/screens/SinglePostScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// --- THE MAIN APP TABS ---
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: "#F97316",
+        tabBarActiveTintColor: "#F97316", 
         tabBarInactiveTintColor: "gray",
         tabBarStyle: { paddingBottom: 5, paddingTop: 5 },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: any;
-          if (route.name === "Feed") {
-            iconName = focused ? "basketball" : "basketball-outline";
-          } else if (route.name === "Profile") {
-            iconName = focused ? "person" : "person-outline";
-          } else if (route.name === "Explore") {
-            iconName = focused ? "map" : "map-outline";
-          }
+          if (route.name === "Feed") iconName = focused ? "basketball" : "basketball-outline";
+          else if (route.name === "Explore") iconName = focused ? "map" : "map-outline";
+          else if (route.name === "Profile") iconName = focused ? "person" : "person-outline";
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
@@ -47,50 +46,52 @@ function MainTabs() {
   );
 }
 
-// --- DEV MENU ---
 function DevMenu({ navigation }: any) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🏀 Hoopify Dev Mode</Text>
       <View style={styles.buttonContainer}>
-        <Button 
-          title="🚀 Go to App (Feed)" 
-          color="#F97316"
-          onPress={() => navigation.navigate('MainTabs')} 
-        />
+        <Button title="🚀 Go to App" color="#F97316" onPress={() => navigation.navigate('MainTabs')} />
         <View style={styles.divider} />
-        <Button 
-          title="⬅️ Back to Landing Page" 
-          onPress={() => navigation.navigate('Landing')} 
-        />
+        <Button title="⬅️ Back to Landing" onPress={() => navigation.navigate('Landing')} />
       </View>
     </View>
   );
 }
 
-// --- ROOT NAVIGATION ---
 export default function Index() {
   return (
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Landing" screenOptions={{ headerShown: false }}>
           
-          {/* Auth Flow */}
           <Stack.Screen name="Landing" component={LandingScreen} />
           <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: true, title: '' }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: true, title: '' }} />
 
-          {/* Main App (Tabs) */}
           <Stack.Screen name="MainTabs" component={MainTabs} />
 
-          {/* Standalone Screens */}
           <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: true, title: 'Chat' }} />
+          <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
+          <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ presentation: 'modal' }} />
           
-          {/* Create Post (Modal Style) */}
+          {/* UPDATED: Added headerBackTitle to fix "MainTab" text */}
           <Stack.Screen 
-            name="CreatePost" 
-            component={CreatePostScreen} 
-            options={{ presentation: 'modal', headerShown: false }} 
+            name="UserProfile" 
+            component={UserProfileScreen} 
+            options={{ headerShown: true, title: 'Player Profile', headerBackTitle: 'Social Feed' }} 
+          />
+
+          {/* NEW SCREENS FOR GAMES PLAYED */}
+          <Stack.Screen 
+            name="UserGames" 
+            component={UserGamesScreen} 
+            options={{ headerShown: true, title: 'Games Played', headerBackTitle: 'Profile' }} 
+          />
+          <Stack.Screen 
+            name="SinglePost" 
+            component={SinglePostScreen} 
+            options={{ headerShown: true, title: 'Game Details', headerBackTitle: 'Back' }} 
           />
           
           <Stack.Screen name="DevMenu" component={DevMenu} />
