@@ -21,7 +21,9 @@ export const CourtServerTab = () => {
       <View style={styles.detailsContainer}>
         {activeTab === "Info" && <TabInfoContent />}
         {activeTab === "Games" && (
-          <Text style={styles.placeholderText}>🏀 Upcoming Games List</Text>
+          <Text style={styles.placeholderText}>
+            🏀 Upcoming Games List Initial
+          </Text>
         )}
         {activeTab === "Chat" && (
           <Text style={styles.placeholderText}>💬 Court Chat Room</Text>
