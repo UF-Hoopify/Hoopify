@@ -1,9 +1,12 @@
+import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Region } from "react-native-maps";
 import { CourtBottomSheet } from "../components/CourtSearch/CourtBottomSheet";
 import { CourtSearchThumbnail } from "../components/CourtSearch/CourtThumbnail";
 import { GameMap } from "../components/CourtSearch/GameMap";
+import { useCourtContext } from "../context/CourtContext";
+import { getCourtServerData } from "../services/CourtService";
 import {
   fetchCourtDetails,
   searchNearbyCourts,
@@ -11,6 +14,7 @@ import {
 import { Court, CourtDetails } from "../types/CourtSearchTypes";
 
 export default function CourtSearchScreen() {
+  const navigation = useNavigation<any>();
   const [courts, setCourts] = useState<Court[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedCourtDetails, setSelectedCourtDetails] =
@@ -20,6 +24,7 @@ export default function CourtSearchScreen() {
   const abortController = useRef<AbortController | null>(null);
   const isMounted = useRef(true);
   const lastSearchedRegion = useRef<Region | null>(null);
+  const { setActiveCourt } = useCourtContext();
 
   useEffect(() => {
     return () => {
@@ -38,6 +43,21 @@ export default function CourtSearchScreen() {
       setSelectedCourtDetails((prev) => ({ ...prev, ...courtDetails }));
     }
     setLoadingDetails(false);
+  };
+
+  const onThumbnailOpen = async () => {
+    if (!selectedCourtDetails) return;
+
+    try {
+      setLoadingDetails(true);
+      const courtServerData = await getCourtServerData(selectedCourtDetails);
+      setActiveCourt(courtServerData);
+      navigation.navigate("MainTabs", { screen: "CourtServer" });
+    } catch (error) {
+      console.error("Failed to open court server:", error);
+    } finally {
+      setLoadingDetails(false);
+    }
   };
 
   const onThumbnailClose = () => {
@@ -120,6 +140,7 @@ export default function CourtSearchScreen() {
         <CourtSearchThumbnail
           court={selectedCourtDetails}
           onClose={onThumbnailClose}
+          onPinPress={onThumbnailOpen}
           isLoadingDetails={loadingDetails}
         />
       ) : (
