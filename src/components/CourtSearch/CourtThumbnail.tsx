@@ -34,7 +34,9 @@ export const CourtSearchThumbnail: React.FC<CourtSearchThumbnailProps> = ({
   isLoadingDetails = false,
 }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
   const placeholderImages = [
+    "https://media.istockphoto.com/id/1551914538/photo/basketball-court-on-3d-illustration.jpg?s=612x612&w=0&k=20&c=zbzckGLILsJvqdvWsS6N0RQn8Z9i6n1iTN4VtSOCWHc=",
     "https://media.istockphoto.com/id/1551914538/photo/basketball-court-on-3d-illustration.jpg?s=612x612&w=0&k=20&c=zbzckGLILsJvqdvWsS6N0RQn8Z9i6n1iTN4VtSOCWHc=",
   ];
 
@@ -49,6 +51,7 @@ export const CourtSearchThumbnail: React.FC<CourtSearchThumbnailProps> = ({
 
   return (
     <View style={styles.container}>
+      {/* --- CAROUSEL SECTION --- */}
       <View style={styles.carouselContainer}>
         <ScrollView
           horizontal
@@ -102,6 +105,8 @@ export const CourtSearchThumbnail: React.FC<CourtSearchThumbnailProps> = ({
           ))}
         </View>
       </View>
+
+      {/* --- META DETAILS SECTION --- */}
       <View style={styles.metaContainer}>
         <View style={styles.headerRow}>
           <Text style={styles.courtName} numberOfLines={1}>
@@ -129,6 +134,7 @@ export const CourtSearchThumbnail: React.FC<CourtSearchThumbnailProps> = ({
         <Text style={styles.subText}>
           {formattedDistance} • {court.address.split(",")[0]}
         </Text>
+
         <View style={styles.footerRow}>
           <View style={styles.widgetsRow}>
             {["Lights", "Outdoor"].map((tag, i) => (
@@ -137,9 +143,17 @@ export const CourtSearchThumbnail: React.FC<CourtSearchThumbnailProps> = ({
               </View>
             ))}
 
-            {court.isOpenNow && (
-              <View style={[styles.widgetTag, styles.alertTag]}>
-                <Text style={[styles.widgetText, styles.alertText]}>
+            {/* FIXED: Removed the redundant boolean trap so "Closed" can actually render */}
+            {typeof court.isOpenNow === "boolean" && (
+              <View
+                style={[styles.widgetTag, !court.isOpenNow && styles.alertTag]}
+              >
+                <Text
+                  style={[
+                    styles.widgetText,
+                    !court.isOpenNow && styles.alertText,
+                  ]}
+                >
                   {court.isOpenNow ? "Open Now" : "Closed"}
                 </Text>
               </View>
@@ -307,6 +321,7 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 12,
   },
+  // FIXED: Removed the duplicate footerRow style
   footerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
