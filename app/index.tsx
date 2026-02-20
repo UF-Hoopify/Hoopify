@@ -1,23 +1,26 @@
-import React from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
-import { NavigationContainer, NavigationIndependentTree } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import {
+  NavigationContainer,
+  NavigationIndependentTree,
+} from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import React from "react";
+import { Button, StyleSheet, Text, View } from "react-native";
 
 // --- SCREENS ---
-import LandingScreen from "../src/screens/LandingScreen";
-import SignUpScreen from "../src/screens/SignUpScreen";
-import LoginScreen from "../src/screens/LoginScreen";
-import CourtSearchScreen from "../src/screens/CourtSearchScreen";
-import UserProfileScreen from "../src/screens/UserProfileScreen";
+import AddFriendsScreen from "../src/screens/AddFriendsScreen";
 import ChatScreen from "../src/screens/ChatScreen";
-import FeedScreen from "../src/screens/FeedScreen";         
-import CreatePostScreen from "../src/screens/CreatePostScreen"; 
-import AddFriendsScreen from "../src/screens/AddFriendsScreen"; 
+import CourtSearchScreen from "../src/screens/CourtSearchScreen";
+import CreatePostScreen from "../src/screens/CreatePostScreen";
+import FeedScreen from "../src/screens/FeedScreen";
+import LandingScreen from "../src/screens/LandingScreen";
+import LoginScreen from "../src/screens/LoginScreen";
+import SignUpScreen from "../src/screens/SignUpScreen";
+import UserProfileScreen from "../src/screens/UserProfileScreen";
 // NEW IMPORTS
-import UserGamesScreen from "../src/screens/UserGamesScreen";
 import SinglePostScreen from "../src/screens/SinglePostScreen";
+import UserGamesScreen from "../src/screens/UserGamesScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -27,14 +30,22 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: "#F97316", 
-        tabBarInactiveTintColor: "gray",
-        tabBarStyle: { paddingBottom: 5, paddingTop: 5 },
+        tabBarActiveTintColor: "#F97316",
+        tabBarInactiveTintColor: "#888888",
+        tabBarStyle: {
+          paddingBottom: 5,
+          paddingTop: 5,
+          backgroundColor: "#121212",
+          borderTopColor: "#222222",
+        },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: any;
-          if (route.name === "Feed") iconName = focused ? "basketball" : "basketball-outline";
-          else if (route.name === "Explore") iconName = focused ? "map" : "map-outline";
-          else if (route.name === "Profile") iconName = focused ? "person" : "person-outline";
+          if (route.name === "Feed")
+            iconName = focused ? "basketball" : "basketball-outline";
+          else if (route.name === "Explore")
+            iconName = focused ? "map" : "map-outline";
+          else if (route.name === "Profile")
+            iconName = focused ? "person" : "person-outline";
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
@@ -51,9 +62,16 @@ function DevMenu({ navigation }: any) {
     <View style={styles.container}>
       <Text style={styles.title}>🏀 Hoopify Dev Mode</Text>
       <View style={styles.buttonContainer}>
-        <Button title="🚀 Go to App" color="#F97316" onPress={() => navigation.navigate('MainTabs')} />
+        <Button
+          title="🚀 Go to App"
+          color="#F97316"
+          onPress={() => navigation.navigate("MainTabs")}
+        />
         <View style={styles.divider} />
-        <Button title="⬅️ Back to Landing" onPress={() => navigation.navigate('Landing')} />
+        <Button
+          title="⬅️ Back to Landing"
+          onPress={() => navigation.navigate("Landing")}
+        />
       </View>
     </View>
   );
@@ -63,39 +81,68 @@ export default function Index() {
   return (
     <NavigationIndependentTree>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Landing" screenOptions={{ headerShown: false }}>
-          
+        <Stack.Navigator
+          initialRouteName="Landing"
+          screenOptions={{ headerShown: false }}
+        >
           <Stack.Screen name="Landing" component={LandingScreen} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: true, title: '' }} />
-          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: true, title: '' }} />
+          <Stack.Screen
+            name="SignUp"
+            component={SignUpScreen}
+            options={{ headerShown: true, title: "" }}
+          />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: true, title: "" }}
+          />
 
           <Stack.Screen name="MainTabs" component={MainTabs} />
 
-          <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: true, title: 'Chat' }} />
+          <Stack.Screen
+            name="ChatScreen"
+            component={ChatScreen}
+            options={{ headerShown: true, title: "Chat" }}
+          />
           <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
-          <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ presentation: 'modal' }} />
-          
+          <Stack.Screen
+            name="CreatePost"
+            component={CreatePostScreen}
+            options={{ presentation: "modal" }}
+          />
+
           {/* UPDATED: Added headerBackTitle to fix "MainTab" text */}
-          <Stack.Screen 
-            name="UserProfile" 
-            component={UserProfileScreen} 
-            options={{ headerShown: true, title: 'Player Profile', headerBackTitle: 'Social Feed' }} 
+          <Stack.Screen
+            name="UserProfile"
+            component={UserProfileScreen}
+            options={{
+              headerShown: true,
+              title: "Player Profile",
+              headerBackTitle: "Social Feed",
+            }}
           />
 
           {/* NEW SCREENS FOR GAMES PLAYED */}
-          <Stack.Screen 
-            name="UserGames" 
-            component={UserGamesScreen} 
-            options={{ headerShown: true, title: 'Games Played', headerBackTitle: 'Profile' }} 
+          <Stack.Screen
+            name="UserGames"
+            component={UserGamesScreen}
+            options={{
+              headerShown: true,
+              title: "Games Played",
+              headerBackTitle: "Profile",
+            }}
           />
-          <Stack.Screen 
-            name="SinglePost" 
-            component={SinglePostScreen} 
-            options={{ headerShown: true, title: 'Game Details', headerBackTitle: 'Back' }} 
+          <Stack.Screen
+            name="SinglePost"
+            component={SinglePostScreen}
+            options={{
+              headerShown: true,
+              title: "Game Details",
+              headerBackTitle: "Back",
+            }}
           />
-          
-          <Stack.Screen name="DevMenu" component={DevMenu} />
 
+          <Stack.Screen name="DevMenu" component={DevMenu} />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
@@ -103,7 +150,12 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff" },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 30 },
   buttonContainer: { width: "80%" },
   divider: { height: 1, backgroundColor: "#eee", marginVertical: 20 },
