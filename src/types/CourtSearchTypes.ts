@@ -5,6 +5,9 @@ export interface Court {
   lng: number;
   address: string;
   available: number;
+  photos?: string[];
+  rating?: number;
+  totalRatings?: number;
 }
 
 export interface CourtDetails extends Court {
@@ -12,5 +15,5 @@ export interface CourtDetails extends Court {
   rating?: number;
   totalRatings?: number;
   isOpenNow?: boolean;
-  closingTime?: string;
+  hours?: string[];
 }

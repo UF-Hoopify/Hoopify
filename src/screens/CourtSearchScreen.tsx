@@ -1,19 +1,30 @@
+import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Region } from "react-native-maps";
 import { CourtBottomSheet } from "../components/CourtSearch/CourtBottomSheet";
+import { CourtSearchThumbnail } from "../components/CourtSearch/CourtThumbnail";
 import { GameMap } from "../components/CourtSearch/GameMap";
-import { searchNearbyCourts } from "../services/GooglePlacesService";
-import { Court } from "../types/CourtSearchTypes";
+import { useCourtContext } from "../context/CourtContext";
+import { getCourtServerData } from "../services/CourtService";
+import {
+  fetchCourtDetails,
+  searchNearbyCourts,
+} from "../services/GooglePlacesService";
+import { Court, CourtDetails } from "../types/CourtSearchTypes";
 
 export default function CourtSearchScreen() {
+  const navigation = useNavigation<any>();
   const [courts, setCourts] = useState<Court[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-
+  const [selectedCourtDetails, setSelectedCourtDetails] =
+    useState<CourtDetails | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortController = useRef<AbortController | null>(null);
   const isMounted = useRef(true);
   const lastSearchedRegion = useRef<Region | null>(null);
+  const { setActiveCourt } = useCourtContext();
 
   useEffect(() => {
     return () => {
@@ -23,17 +34,47 @@ export default function CourtSearchScreen() {
     };
   }, []);
 
+  const onCourtSelect = async (basicCourt: Court) => {
+    setSelectedCourtDetails({ ...basicCourt });
+    setLoadingDetails(true);
+
+    const courtDetails = await fetchCourtDetails(basicCourt.id);
+    if (courtDetails) {
+      setSelectedCourtDetails((prev) => ({ ...prev, ...courtDetails }));
+    }
+    setLoadingDetails(false);
+  };
+
+  const onThumbnailOpen = async () => {
+    if (!selectedCourtDetails) return;
+
+    try {
+      setLoadingDetails(true);
+      const courtServerData = await getCourtServerData(selectedCourtDetails);
+      setActiveCourt(courtServerData);
+      navigation.navigate("MainTabs", { screen: "CourtServer" });
+    } catch (error) {
+      console.error("Failed to open court server:", error);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const onThumbnailClose = () => {
+    setSelectedCourtDetails(null);
+  };
+
   const hasMapMovedSignificantly = (newRegion: Region): boolean => {
     if (!lastSearchedRegion.current) return true;
 
     const latDiff = Math.abs(
-      newRegion.latitude - lastSearchedRegion.current.latitude
+      newRegion.latitude - lastSearchedRegion.current.latitude,
     );
     const lngDiff = Math.abs(
-      newRegion.longitude - lastSearchedRegion.current.longitude
+      newRegion.longitude - lastSearchedRegion.current.longitude,
     );
     const zoomDiff = Math.abs(
-      newRegion.latitudeDelta - lastSearchedRegion.current.latitudeDelta
+      newRegion.latitudeDelta - lastSearchedRegion.current.latitudeDelta,
     );
 
     return latDiff > 0.002 || lngDiff > 0.002 || zoomDiff > 0.002;
@@ -42,6 +83,7 @@ export default function CourtSearchScreen() {
   const handleRegionChangeComplete = useCallback((region: Region) => {
     if (!hasMapMovedSignificantly(region)) return;
 
+    setSelectedCourtDetails(null);
     debounceTimer.current && clearTimeout(debounceTimer.current);
     abortController.current?.abort();
 
@@ -57,7 +99,7 @@ export default function CourtSearchScreen() {
       try {
         const fetchedCourts = await searchNearbyCourts(
           region,
-          controller.signal
+          controller.signal,
         );
 
         if (isMounted.current) {
@@ -72,7 +114,7 @@ export default function CourtSearchScreen() {
           setIsSearching(false);
         }
       }
-    }, 1500);
+    }, 600);
   }, []);
 
   return (
@@ -89,10 +131,21 @@ export default function CourtSearchScreen() {
           courts={courts}
           isSearching={isSearching}
           onRegionChangeComplete={handleRegionChangeComplete}
+          onCourtSelect={onCourtSelect}
+          onMapPress={onThumbnailClose}
         />
       </View>
 
-      <CourtBottomSheet courts={courts} />
+      {selectedCourtDetails ? (
+        <CourtSearchThumbnail
+          court={selectedCourtDetails}
+          onClose={onThumbnailClose}
+          onPinPress={onThumbnailOpen}
+          isLoadingDetails={loadingDetails}
+        />
+      ) : (
+        <CourtBottomSheet courts={courts} />
+      )}
     </View>
   );
 }
