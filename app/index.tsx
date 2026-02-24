@@ -1,9 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import {
-  NavigationContainer,
-  NavigationIndependentTree,
-} from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
@@ -17,10 +13,9 @@ import FeedScreen from "../src/screens/FeedScreen";
 import LandingScreen from "../src/screens/LandingScreen";
 import LoginScreen from "../src/screens/LoginScreen";
 import SignUpScreen from "../src/screens/SignUpScreen";
-import UserProfileScreen from "../src/screens/UserProfileScreen";
-// NEW IMPORTS
 import SinglePostScreen from "../src/screens/SinglePostScreen";
 import UserGamesScreen from "../src/screens/UserGamesScreen";
+import UserProfileScreen from "../src/screens/UserProfileScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -36,7 +31,7 @@ function MainTabs() {
           paddingBottom: 5,
           paddingTop: 5,
           backgroundColor: "#121212",
-          borderTopColor: "#222222",
+          borderTopColor: "#2A2A2A",
         },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: any;
@@ -70,6 +65,7 @@ function DevMenu({ navigation }: any) {
         <View style={styles.divider} />
         <Button
           title="⬅️ Back to Landing"
+          color="#A0A0A0"
           onPress={() => navigation.navigate("Landing")}
         />
       </View>
@@ -79,73 +75,73 @@ function DevMenu({ navigation }: any) {
 
 export default function Index() {
   return (
-    <NavigationIndependentTree>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Landing"
-          screenOptions={{ headerShown: false }}
-        >
-          <Stack.Screen name="Landing" component={LandingScreen} />
-          <Stack.Screen
-            name="SignUp"
-            component={SignUpScreen}
-            options={{ headerShown: true, title: "" }}
-          />
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: true, title: "" }}
-          />
+    <Stack.Navigator
+      initialRouteName="Landing"
+      screenOptions={{
+        headerShown: false,
+        headerStyle: { backgroundColor: "#121212" },
+        headerTintColor: "#FFFFFF",
+        headerTitleStyle: { color: "#FFFFFF", fontWeight: "bold" },
+        headerShadowVisible: false,
+      }}
+    >
+      <Stack.Screen name="Landing" component={LandingScreen} />
+      <Stack.Screen
+        name="SignUp"
+        component={SignUpScreen}
+        options={{ headerShown: true, title: "", headerTintColor: "#F97316" }}
+      />
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ headerShown: true, title: "", headerTintColor: "#F97316" }}
+      />
 
-          <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen name="MainTabs" component={MainTabs} />
 
-          <Stack.Screen
-            name="ChatScreen"
-            component={ChatScreen}
-            options={{ headerShown: true, title: "Chat" }}
-          />
-          <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
-          <Stack.Screen
-            name="CreatePost"
-            component={CreatePostScreen}
-            options={{ presentation: "modal" }}
-          />
+      <Stack.Screen
+        name="ChatScreen"
+        component={ChatScreen}
+        options={{ headerShown: true, title: "Chat" }}
+      />
+      <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
+      <Stack.Screen
+        name="CreatePost"
+        component={CreatePostScreen}
+        options={{ presentation: "modal" }}
+      />
 
-          {/* UPDATED: Added headerBackTitle to fix "MainTab" text */}
-          <Stack.Screen
-            name="UserProfile"
-            component={UserProfileScreen}
-            options={{
-              headerShown: true,
-              title: "Player Profile",
-              headerBackTitle: "Social Feed",
-            }}
-          />
+      <Stack.Screen
+        name="UserProfile"
+        component={UserProfileScreen}
+        options={{
+          headerShown: true,
+          title: "Player Profile",
+          headerBackTitle: "Feed",
+        }}
+      />
 
-          {/* NEW SCREENS FOR GAMES PLAYED */}
-          <Stack.Screen
-            name="UserGames"
-            component={UserGamesScreen}
-            options={{
-              headerShown: true,
-              title: "Games Played",
-              headerBackTitle: "Profile",
-            }}
-          />
-          <Stack.Screen
-            name="SinglePost"
-            component={SinglePostScreen}
-            options={{
-              headerShown: true,
-              title: "Game Details",
-              headerBackTitle: "Back",
-            }}
-          />
+      <Stack.Screen
+        name="UserGames"
+        component={UserGamesScreen}
+        options={{
+          headerShown: true,
+          title: "Games Played",
+          headerBackTitle: "Profile",
+        }}
+      />
+      <Stack.Screen
+        name="SinglePost"
+        component={SinglePostScreen}
+        options={{
+          headerShown: true,
+          title: "Game Details",
+          headerBackTitle: "Back",
+        }}
+      />
 
-          <Stack.Screen name="DevMenu" component={DevMenu} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </NavigationIndependentTree>
+      <Stack.Screen name="DevMenu" component={DevMenu} />
+    </Stack.Navigator>
   );
 }
 
@@ -154,9 +150,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#121212",
   },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 30 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 30, color: "#FFF" },
   buttonContainer: { width: "80%" },
-  divider: { height: 1, backgroundColor: "#eee", marginVertical: 20 },
+  divider: { height: 1, backgroundColor: "#2A2A2A", marginVertical: 20 },
 });

@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, ScrollView } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 import PostCard from "../components/CourtSearch/Feed/PostCard";
 
 export default function SinglePostScreen({ route }: any) {
@@ -7,13 +7,12 @@ export default function SinglePostScreen({ route }: any) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Reusing the exact same UI card from the Feed! */}
       <PostCard post={post} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8F9FA" },
-  content: { padding: 16 }
+  container: { flex: 1, backgroundColor: "#121212" },
+  content: { padding: 16 },
 });
