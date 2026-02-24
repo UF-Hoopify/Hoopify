@@ -27,13 +27,13 @@ export default function CourtSearchScreen() {
     if (!lastSearchedRegion.current) return true;
 
     const latDiff = Math.abs(
-      newRegion.latitude - lastSearchedRegion.current.latitude
+      newRegion.latitude - lastSearchedRegion.current.latitude,
     );
     const lngDiff = Math.abs(
-      newRegion.longitude - lastSearchedRegion.current.longitude
+      newRegion.longitude - lastSearchedRegion.current.longitude,
     );
     const zoomDiff = Math.abs(
-      newRegion.latitudeDelta - lastSearchedRegion.current.latitudeDelta
+      newRegion.latitudeDelta - lastSearchedRegion.current.latitudeDelta,
     );
 
     return latDiff > 0.002 || lngDiff > 0.002 || zoomDiff > 0.002;
@@ -57,7 +57,8 @@ export default function CourtSearchScreen() {
       try {
         const fetchedCourts = await searchNearbyCourts(
           region,
-          controller.signal
+          "basketball court",
+          controller.signal,
         );
 
         if (isMounted.current) {
