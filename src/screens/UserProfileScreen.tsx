@@ -20,6 +20,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../config/firebaseConfig";
 
 interface UserProfile {
@@ -40,6 +42,7 @@ export default function UserProfileScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFriend, setIsFriend] = useState(false);
   const [addingFriend, setAddingFriend] = useState(false);
+
   const isMounted = useRef(true);
   const navigation = useNavigation();
   const route = useRoute();
@@ -63,6 +66,7 @@ export default function UserProfileScreen() {
         const trueFriendsCount = userData.friendsList
           ? userData.friendsList.length
           : 0;
+
         const gamesQuery = query(
           collection(db, "posts"),
           where("userId", "==", TARGET_USER_ID),
@@ -91,12 +95,10 @@ export default function UserProfileScreen() {
     } catch (err) {
       console.error("Error fetching user:", err);
     } finally {
-      // Only turn off the loading spinner if the user is still on this screen
       if (isMounted.current) setIsLoading(false);
     }
   }, [TARGET_USER_ID, isViewingSelf, currentAuthId]);
 
-  // Trigger the fetch when the screen loads or when the target ID changes
   useEffect(() => {
     isMounted.current = true;
     fetchUserProfile();
@@ -105,7 +107,6 @@ export default function UserProfileScreen() {
     };
   }, [fetchUserProfile]);
 
-  // Navigate to the Chat screen, passing along the recipient's name and ID
   const handleMessagePress = () => {
     if (!user) return;
     // @ts-ignore
@@ -115,22 +116,21 @@ export default function UserProfileScreen() {
     });
   };
 
+  // --- ACTION HANDLERS ---
   const handleAddFriend = async () => {
     if (!currentAuthId || !TARGET_USER_ID) return;
     setAddingFriend(true);
 
     try {
+      // 1. Add them to YOUR friends list
       await updateDoc(doc(db, "users", currentAuthId), {
         friendsList: arrayUnion(TARGET_USER_ID),
         "stats.friends": increment(1),
       });
 
-      // TODO: add "friend request" feature instead of adding on both documents
-      // You are trying to force an update on someone ELSE's profile document.
-      // Your Firestore Security Rule `allow update: if request.auth.uid == userId`
-      // explicitly blocks you from modifying data that isn't yours.
-      // (To fix this properly later, you need a "friend requests" subcollection
-      // or a Firebase Cloud Function to handle two-way friendship creation).
+      // ⚠️ CRITICAL ISSUE STILL PRESENT:
+      // If Firestore Rules are locked down securely, this line will throw a permission denied error.
+      // You cannot write to another user's document directly.
       await updateDoc(doc(db, "users", TARGET_USER_ID), {
         friendsList: arrayUnion(currentAuthId),
         "stats.friends": increment(1),
@@ -148,7 +148,7 @@ export default function UserProfileScreen() {
 
       Alert.alert("Success", `You are now friends with ${user?.displayName}!`);
     } catch (error) {
-      console.error(error); // Logging the error helps debugging!
+      console.error(error);
       Alert.alert(
         "Error",
         "Could not add friend. (Check Firestore Security Rules)",
@@ -158,8 +158,9 @@ export default function UserProfileScreen() {
     }
   };
 
+  // --- UI RENDER ---
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="small" color="#F97316" />
@@ -168,16 +169,16 @@ export default function UserProfileScreen() {
 
       {user && (
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* HEADER */}
           <View style={styles.header}>
             <Text style={styles.name}>{user.displayName}</Text>
             {user.username && (
-              <Text style={{ color: "#888", fontSize: 16 }}>
-                @{user.username}
-              </Text>
+              <Text style={styles.username}>@{user.username}</Text>
             )}
             <Text style={styles.location}>{user.location}</Text>
           </View>
 
+          {/* ACTION BUTTONS */}
           {!isViewingSelf && (
             <View style={styles.actionRow}>
               {!isFriend && (
@@ -202,7 +203,9 @@ export default function UserProfileScreen() {
             </View>
           )}
 
+          {/* STATS SECTION */}
           <View style={styles.statsContainer}>
+            {/* TODO: Link to an actual friends list instead of the global AddFriends component */}
             <TouchableOpacity
               style={styles.statBox}
               onPress={() => (navigation as any).navigate("AddFriends")}
@@ -226,6 +229,7 @@ export default function UserProfileScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* ADDITIONAL INFO */}
           <View style={styles.infoSection}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Basketball Level</Text>
@@ -236,12 +240,13 @@ export default function UserProfileScreen() {
           </View>
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
+// === STYLES ===
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#121212" },
   scrollContent: { paddingVertical: 20, alignItems: "center" },
   loadingOverlay: {
     position: "absolute",
@@ -249,13 +254,14 @@ const styles = StyleSheet.create({
     left: "50%",
     transform: [{ translateX: -50 }],
     zIndex: 10,
-    backgroundColor: "rgba(0,0,0,0.7)",
+    backgroundColor: "rgba(0,0,0,0.8)",
     padding: 16,
     borderRadius: 20,
   },
   header: { alignItems: "center", marginBottom: 30, marginTop: 10 },
-  name: { fontSize: 32, fontWeight: "bold", color: "#000" },
-  location: { fontSize: 16, color: "#666", marginTop: 4 },
+  name: { fontSize: 32, fontWeight: "bold", color: "#FFFFFF" },
+  username: { color: "#A0A0A0", fontSize: 16, marginTop: 4 },
+  location: { fontSize: 16, color: "#A0A0A0", marginTop: 4 },
   actionRow: {
     flexDirection: "row",
     width: "85%",
@@ -272,7 +278,7 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: { color: "white", fontWeight: "bold", fontSize: 16 },
   secondaryBtn: {
-    backgroundColor: "#FFF4E6",
+    backgroundColor: "transparent",
     paddingVertical: 12,
     borderRadius: 25,
     flex: 1,
@@ -288,20 +294,20 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: "#F0F0F0",
+    borderColor: "#2A2A2A",
     marginBottom: 20,
   },
   statBox: { alignItems: "center", flex: 1 },
-  statDivider: { width: 1, backgroundColor: "#DDD", height: "80%" },
-  statNumber: { fontSize: 20, fontWeight: "bold", color: "#333" },
-  statLabel: { fontSize: 13, color: "#888", marginTop: 2 },
+  statDivider: { width: 1, backgroundColor: "#2A2A2A", height: "80%" },
+  statNumber: { fontSize: 20, fontWeight: "bold", color: "#FFFFFF" },
+  statLabel: { fontSize: 13, color: "#A0A0A0", marginTop: 2 },
   infoSection: {
     width: "85%",
-    backgroundColor: "#FAFAFA",
+    backgroundColor: "#1E1E1E",
     borderRadius: 15,
     padding: 15,
   },
   infoRow: { flexDirection: "row", justifyContent: "space-between" },
-  infoLabel: { fontSize: 16, color: "#555" },
-  infoValue: { fontSize: 16, fontWeight: "600", color: "#000" },
+  infoLabel: { fontSize: 16, color: "#A0A0A0" },
+  infoValue: { fontSize: 16, fontWeight: "600", color: "#FFFFFF" },
 });

@@ -86,6 +86,7 @@ export default function Index() {
       }}
     >
       <Stack.Screen name="Landing" component={LandingScreen} />
+
       <Stack.Screen
         name="SignUp"
         component={SignUpScreen}
@@ -117,7 +118,6 @@ export default function Index() {
         options={{
           headerShown: true,
           title: "Player Profile",
-          headerBackTitle: "Feed",
         }}
       />
 
@@ -127,7 +127,6 @@ export default function Index() {
         options={{
           headerShown: true,
           title: "Games Played",
-          headerBackTitle: "Profile",
         }}
       />
       <Stack.Screen
@@ -136,7 +135,6 @@ export default function Index() {
         options={{
           headerShown: true,
           title: "Game Details",
-          headerBackTitle: "Back",
         }}
       />
 
