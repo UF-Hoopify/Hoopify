@@ -1,4 +1,5 @@
-import { useRoute } from "@react-navigation/native";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   addDoc,
@@ -23,7 +24,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../config/firebaseConfig";
 
-// Types matching your database structure
 interface Message {
   _id: string;
   text: string;
@@ -43,8 +43,17 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   const route = useRoute();
+  const navigation = useNavigation();
+  const headerHeight = useHeaderHeight();
+
   // @ts-ignore
   const { recipientId, recipientName } = route.params || {};
+
+  useEffect(() => {
+    if (recipientName) {
+      navigation.setOptions({ title: recipientName });
+    }
+  }, [navigation, recipientName]);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -88,7 +97,6 @@ export default function ChatScreen() {
   }, [CHAT_ID]);
 
   const handleSend = useCallback(async () => {
-    // Extra safety: block sending if somehow the input is empty or IDs are missing
     if (inputText.trim().length === 0 || !CHAT_ID || !currentUserId) return;
 
     setIsSending(true);
@@ -130,66 +138,66 @@ export default function ChatScreen() {
     );
   };
 
-  // -- LOADING STATE: Show a loading indicator while we check auth and load messages
   if (isAuthLoading || !currentUserId) {
     return (
-      <SafeAreaView style={[styles.container, styles.loadingContainer]}>
+      <SafeAreaView
+        edges={["bottom"]}
+        style={[styles.container, styles.loadingContainer]}
+      >
         <ActivityIndicator size="large" color="#F97316" />
         <Text style={styles.loadingText}>Loading chat...</Text>
       </SafeAreaView>
     );
   }
 
-  // --- MAIN RENDER ---
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{recipientName || "Chat"}</Text>
-      </View>
-
-      <View style={styles.chatContainer}>
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item._id}
-          inverted
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No messages yet. Say hi!</Text>
-            </View>
-          }
-        />
-      </View>
-
-      {/* Input Area */}
+    <SafeAreaView edges={["bottom"]} style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-        style={styles.inputWrapper}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={headerHeight}
       >
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Type a message..."
-            placeholderTextColor="#999"
-            multiline
+        <View style={styles.chatContainer}>
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(item) => item._id}
+            inverted
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No messages yet. Say hi!</Text>
+              </View>
+            }
           />
-          <TouchableOpacity
-            onPress={handleSend}
-            disabled={isSending || !CHAT_ID} // Disable button if CHAT_ID isn't ready
-            style={[styles.sendButton, isSending && styles.sendButtonDisabled]}
-          >
-            {isSending ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <Text style={styles.sendText}>Send</Text>
-            )}
-          </TouchableOpacity>
+        </View>
+
+        <View style={styles.inputWrapper}>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Type a message..."
+              placeholderTextColor="#A0A0A0"
+              multiline
+            />
+            <TouchableOpacity
+              onPress={handleSend}
+              disabled={isSending || !CHAT_ID}
+              style={[
+                styles.sendButton,
+                isSending && styles.sendButtonDisabled,
+              ]}
+            >
+              {isSending ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <Text style={styles.sendText}>Send</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -197,20 +205,10 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9F9F9" },
+  container: { flex: 1, backgroundColor: "#121212" },
 
   loadingContainer: { justifyContent: "center", alignItems: "center" },
-  loadingText: { marginTop: 10, color: "#999", fontSize: 16 },
-
-  header: {
-    padding: 16,
-    backgroundColor: "#FFF",
-    borderBottomWidth: 1,
-    borderColor: "#EEE",
-    alignItems: "center",
-    elevation: 2,
-  },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#000" },
+  loadingText: { marginTop: 10, color: "#A0A0A0", fontSize: 16 },
 
   chatContainer: { flex: 1 },
   listContent: { paddingHorizontal: 16, paddingVertical: 20 },
@@ -229,23 +227,23 @@ const styles = StyleSheet.create({
   },
   theirMessage: {
     alignSelf: "flex-start",
-    backgroundColor: "#FFF",
+    backgroundColor: "#1E1E1E",
     borderBottomLeftRadius: 2,
     borderWidth: 1,
-    borderColor: "#EEE",
+    borderColor: "#333333",
   },
 
   messageText: { fontSize: 16, lineHeight: 22 },
-  myText: { color: "#FFF" },
-  theirText: { color: "#333" },
+  myText: { color: "#FFFFFF" },
+  theirText: { color: "#FFFFFF" },
 
   emptyContainer: { alignItems: "center", marginTop: 50 },
-  emptyText: { color: "#AAA", fontSize: 16 },
+  emptyText: { color: "#A0A0A0", fontSize: 16 },
 
   inputWrapper: {
-    backgroundColor: "#FFF",
+    backgroundColor: "#121212",
     borderTopWidth: 1,
-    borderColor: "#EEE",
+    borderColor: "#2A2A2A",
   },
   inputContainer: {
     flexDirection: "row",
@@ -254,13 +252,16 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#1E1E1E",
+    color: "#FFFFFF",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     marginRight: 10,
     fontSize: 16,
     maxHeight: 100,
+    borderWidth: 1,
+    borderColor: "#333333",
   },
   sendButton: {
     backgroundColor: "#F97316",
@@ -269,6 +270,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
   },
-  sendButtonDisabled: { backgroundColor: "#FCCBA3" },
+  sendButtonDisabled: { backgroundColor: "#8B400C" },
   sendText: { color: "#FFF", fontWeight: "bold", fontSize: 16 },
 });
