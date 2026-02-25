@@ -99,6 +99,7 @@ export default function CourtSearchScreen() {
       try {
         const fetchedCourts = await searchNearbyCourts(
           region,
+          "basketball court",
           controller.signal,
         );
 
