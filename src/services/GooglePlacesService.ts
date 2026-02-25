@@ -8,6 +8,18 @@ interface GooglePlace {
   displayName?: { text: string };
   location: { latitude: number; longitude: number };
   formattedAddress?: string;
+  rating?: number;
+  userRatingCount?: number;
+  photos?: {
+    name: string;
+    widthPx: number;
+    heightPx: number;
+    authorAttributions?: {
+      displayName: string;
+      uri: string;
+      photoUri: string;
+    }[];
+  }[];
 }
 
 interface GooglePlacesResponse {
@@ -21,7 +33,7 @@ const getPhotoUrl = (photoReference: string) => {
 // UPDATED: Added 'query' parameter to allow text search
 export async function searchNearbyCourts(
   region: Region,
-  query: string = "basketball court", 
+  query: string = "basketball court",
   signal?: AbortSignal,
 ): Promise<Court[]> {
   if (!GOOGLE_API_KEY) {
@@ -51,10 +63,10 @@ export async function searchNearbyCourts(
           "Content-Type": "application/json",
           "X-Goog-Api-Key": GOOGLE_API_KEY,
           "X-Goog-FieldMask":
-            "places.id,places.displayName,places.location,places.formattedAddress",
+            "places.id,places.displayName,places.location,places.formattedAddress,places.photos,places.rating,places.userRatingCount",
         },
         body: JSON.stringify({
-          textQuery: query, // Uses your typed text now
+          textQuery: query,
           locationRestriction: {
             rectangle: {
               low: low,
@@ -84,6 +96,11 @@ export async function searchNearbyCourts(
       lng: place.location.longitude,
       address: place.formattedAddress ?? "",
       available: 0,
+      rating: place.rating,
+      totalRatings: place.userRatingCount,
+      photos: place.photos
+        ? place.photos.slice(0, 3).map((p) => getPhotoUrl(p.name))
+        : [],
     }));
   } catch (error) {
     if ((error as Error).name === "AbortError") return [];
@@ -105,7 +122,7 @@ export async function fetchCourtDetails(
           "Content-Type": "application/json",
           "X-Goog-Api-Key": GOOGLE_API_KEY,
           "X-Goog-FieldMask":
-            "id,displayName,location,formattedAddress,photos,rating,userRatingCount,currentOpeningHours",
+            "id,displayName,location,formattedAddress,photos,rating,userRatingCount,currentOpeningHours,regularOpeningHours",
         },
       },
     );
@@ -125,10 +142,13 @@ export async function fetchCourtDetails(
       address: data.formattedAddress ?? "",
       available: 0,
       photos: photoUrls,
-      rating: data.rating,
-      totalRatings: data.userRatingCount,
-      isOpenNow: isOpen,
-      closingTime: closingTime,
+      rating: data.rating ?? null,
+      totalRatings: data.userRatingCount ?? 0,
+      isOpenNow:
+        data.currentOpeningHours?.openNow ??
+        data.regularOpeningHours?.openNow ??
+        false,
+      hours: data.regularOpeningHours?.weekdayDescriptions ?? [],
     };
   } catch (error) {
     console.error("Failed to fetch court details:", error);
