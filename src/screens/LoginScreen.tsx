@@ -1,10 +1,17 @@
-import React, { useState } from "react";
-import { 
-  View, Text, TextInput, TouchableOpacity, StyleSheet, 
-  ActivityIndicator, Alert, KeyboardAvoidingView, Platform 
-} from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebaseConfig"; 
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { auth } from "../config/firebaseConfig";
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
@@ -26,47 +33,86 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
       <Text style={styles.title}>Welcome Back</Text>
-      
+
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Email</Text>
-        <TextInput 
-          style={styles.input} 
-          placeholder="baller@example.com" 
-          value={email} 
-          onChangeText={setEmail} 
-          autoCapitalize="none" 
+        <TextInput
+          style={styles.input}
+          placeholder="baller@example.com"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
         />
 
         <Text style={styles.label}>Password</Text>
-        <TextInput 
-          style={styles.input} 
-          placeholder="••••••••" 
-          value={password} 
-          onChangeText={setPassword} 
+        <TextInput
+          style={styles.input}
+          placeholder="••••••••"
+          value={password}
+          onChangeText={setPassword}
           secureTextEntry
         />
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Log In</Text>}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#FFF" />
+        ) : (
+          <Text style={styles.buttonText}>Log In</Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-        <Text style={styles.linkText}>Dont have an account? <Text style={{fontWeight: 'bold'}}>Sign Up</Text></Text>
+        <Text style={styles.linkText}>
+          Dont have an account?{" "}
+          <Text style={{ fontWeight: "bold" }}>Sign Up</Text>
+        </Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 24, backgroundColor: "#FFF" },
-  title: { fontSize: 32, fontWeight: "bold", marginBottom: 40, color: "#000" },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "#121212",
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    marginBottom: 40,
+    color: "#FFFFFF",
+  },
   inputContainer: { marginBottom: 20 },
-  label: { fontSize: 14, color: "#666", marginBottom: 6, fontWeight: "600" },
-  input: { backgroundColor: "#F5F5F5", borderRadius: 12, padding: 16, marginBottom: 16, fontSize: 16 },
-  button: { backgroundColor: "#F97316", padding: 18, borderRadius: 30, alignItems: "center", marginBottom: 20 },
+  label: { fontSize: 14, color: "#A0A0A0", marginBottom: 6, fontWeight: "600" },
+  input: {
+    backgroundColor: "#1E1E1E",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    fontSize: 16,
+    color: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#2A2A2A",
+  },
+  button: {
+    backgroundColor: "#F97316",
+    padding: 18,
+    borderRadius: 30,
+    alignItems: "center",
+    marginBottom: 20,
+  },
   buttonText: { color: "#FFF", fontSize: 18, fontWeight: "bold" },
-  linkText: { textAlign: "center", color: "#666", marginTop: 10 }
+  linkText: { textAlign: "center", color: "#A0A0A0", marginTop: 10 },
 });
