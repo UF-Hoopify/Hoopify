@@ -11,6 +11,13 @@ export type RimQuality = "single" | "double" | "breakaway" | "unknown";
 export type NetType = "chain" | "nylon" | "polyester" | "none" | "unknown";
 export type LightingLevel = "none" | "low" | "medium" | "high";
 
+export type GameFormat = "1v1" | "2v2" | "3v3" | "4v4" | "5v5";
+export type GameVisibility = "public" | "private";
+export type Competitiveness = "casual" | "moderate" | "competitive";
+export type GameState = "open" | "full" | "in_progress" | "completed" | "cancelled";
+export type PlayerStatus = "confirmed" | "pending" | "declined";
+export type PlayerTeam = "home" | "away" | "unassigned";
+
 export interface CourtDocument {
   id: string;
 
@@ -37,9 +44,31 @@ export interface CourtDocument {
   last_activity_at?: Timestamp;
 }
 
-// TODO: implement for Games feature
-export interface GameDocument {
+export interface GamePlayer {
+  status: PlayerStatus;
+  team: PlayerTeam;
+  joinedAt: Timestamp;
+  displayName: string;
+  profilePic: string;
+}
+
+export interface CourtServerGame {
   id: string;
+  courtServerId: string;
+  creatorId: string;
+  createdAt: Timestamp;
+
+  meetupTime: Timestamp;
+  courtNumber: number;
+  format: GameFormat;
+  visibility: GameVisibility;
+  competitiveness: Competitiveness;
+  status: GameState;
+  description: string;
+
+  invitedUserIds: string[];
+
+  players: Record<string, GamePlayer>;
 }
 
 // TODO: implement for Chat feature
