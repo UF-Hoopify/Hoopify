@@ -25,11 +25,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
+"plugins": [
       "expo-router",
       [
         "expo-splash-screen",
@@ -47,6 +43,19 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "99fa039a-6367-4592-a9a1-ee6ee51ad157"
+      }
+    },
+    "owner": "sai_naru",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/99fa039a-6367-4592-a9a1-ee6ee51ad157"
     }
   }
 }
