@@ -14,7 +14,12 @@ export type LightingLevel = "none" | "low" | "medium" | "high";
 export type GameFormat = "1v1" | "2v2" | "3v3" | "4v4" | "5v5";
 export type GameVisibility = "public" | "private";
 export type Competitiveness = "casual" | "moderate" | "competitive";
-export type GameState = "open" | "full" | "in_progress" | "completed" | "cancelled";
+export type GameState =
+  | "open"
+  | "full"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
 export type PlayerStatus = "confirmed" | "pending" | "declined";
 export type PlayerTeam = "home" | "away" | "unassigned";
 
@@ -59,7 +64,8 @@ export interface CourtServerGame {
   createdAt: Timestamp;
 
   meetupTime: Timestamp;
-  courtNumber: number;
+  endingTime?: Timestamp;
+  courtDescriptor: string;
   format: GameFormat;
   visibility: GameVisibility;
   competitiveness: Competitiveness;

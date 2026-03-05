@@ -1,17 +1,28 @@
 import {
   GeoPoint,
   Timestamp,
+  addDoc,
+  collection,
   doc,
   getDoc,
+  getDocs,
   getFirestore,
+  orderBy,
+  query,
+  serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
-import { app } from "../config/firebaseConfig";
+import { app, auth } from "../config/firebaseConfig";
 import { CourtDetails } from "../types/CourtSearchTypes";
 import {
+  Competitiveness,
   CourtDocument,
+  CourtServerGame,
   CourtType,
+  GameFormat,
+  GameVisibility,
   LightingLevel,
   NetType,
   RimQuality,
@@ -123,5 +134,99 @@ export const getCourtServerData = async (
   } catch (error) {
     console.error("[CourtService] Error in getCourtServerData:", error);
     throw error;
+  }
+};
+
+/**
+ * Fetches upcoming and live games for a specific court server.
+ * * @param courtId - The ID of the gym/park (e.g., "florida-gymnasium")
+ * @param visibility - "public" or "private"
+ * @returns A promise resolving to an array of CourtServerGame objects
+ */
+export const fetchCourtGames = async (
+  courtId: string,
+  visibility: GameVisibility,
+): Promise<CourtServerGame[]> => {
+  try {
+    const gamesRef = collection(db, "games");
+
+    const gamesQuery = query(
+      gamesRef,
+      where("courtServerId", "==", courtId),
+      where("visibility", "==", visibility),
+      where("status", "in", ["upcoming", "live"]),
+      orderBy("meetupTime", "asc"),
+    );
+
+    const querySnapshot = await getDocs(gamesQuery);
+    const games: CourtServerGame[] = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+
+      return {
+        id: doc.id,
+        ...data,
+      } as CourtServerGame;
+    });
+
+    return games;
+  } catch (error) {
+    console.error("Error fetching court games:", error);
+    throw new Error("Failed to load games. Please try again.");
+  }
+};
+
+interface CreateGameParams {
+  courtServerId: string;
+  courtDescriptor?: string;
+  meetupTime: Date;
+  endingTime?: Date;
+  format: GameFormat; // e.g., "3v3"
+  visibility: GameVisibility;
+  competitiveness: Competitiveness; // e.g., "casual"
+  description: string;
+  inivtedUserIds?: string[]; // Optional list of user IDs to invite
+}
+
+export const createCourtGame = async (
+  params: CreateGameParams,
+): Promise<string> => {
+  try {
+    const currentUser = auth.currentUser;
+    if (!currentUser)
+      throw new Error("User must be logged in to create a game.");
+
+    const gamesRef = collection(db, "games");
+
+    const newGame = {
+      courtServerId: params.courtServerId,
+      creatorId: currentUser.uid,
+      createdAt: serverTimestamp(),
+      meetupTime: Timestamp.fromDate(params.meetupTime),
+      ...(params.endingTime && {
+        endingTime: Timestamp.fromDate(params.endingTime), // optional
+      }),
+      ...(params.courtDescriptor && {
+        courtDescriptor: params.courtDescriptor,
+      }),
+      format: params.format,
+      visibility: params.visibility,
+      competitiveness: params.competitiveness,
+      status: "upcoming",
+      description: params.description,
+      invitedUserIds: params.inivtedUserIds || [],
+      players: {
+        [currentUser.uid]: {
+          userId: currentUser.uid,
+          team: "unassigned",
+          joinedAt: serverTimestamp(),
+        },
+      },
+    };
+
+    const docRef = await addDoc(gamesRef, newGame);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating game:", error);
+    throw new Error("Failed to post game.");
   }
 };

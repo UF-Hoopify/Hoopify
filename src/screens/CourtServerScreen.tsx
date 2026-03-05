@@ -42,7 +42,7 @@ export const CourtServerScreen = () => {
           totalRatings={activeCourt.total_ratings_google}
           photos={activeCourt.photos}
         />
-        <CourtServerTab />
+        <CourtServerTab courtServerId={activeCourt.id} />
       </ScrollView>
     </View>
   );

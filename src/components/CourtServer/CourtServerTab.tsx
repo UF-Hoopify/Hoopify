@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import CourtServerGame from "./CourtServerGame/CourtServerGame";
 import { TabCarousel } from "./TabCarousel";
 import TabInfoContent from "./TabInfoContent";
 
 const TABS = ["Games", "Info", "Chat", "Reviews"];
 
-export const CourtServerTab = () => {
+export const CourtServerTab = ({
+  courtServerId,
+}: {
+  courtServerId: string;
+}) => {
   const [activeTab, setActiveTab] = useState("Info");
 
   return (
@@ -21,9 +26,7 @@ export const CourtServerTab = () => {
       <View style={styles.detailsContainer}>
         {activeTab === "Info" && <TabInfoContent />}
         {activeTab === "Games" && (
-          <Text style={styles.placeholderText}>
-            🏀 Upcoming Games List Initial
-          </Text>
+          <CourtServerGame courtServerId={courtServerId} />
         )}
         {activeTab === "Chat" && (
           <Text style={styles.placeholderText}>💬 Court Chat Room</Text>
