@@ -50,9 +50,6 @@ const hasSignificantChanges = (
   return false;
 };
 
-/**
- * MAIN HANDLER: Get Court Data (Get or Create Pattern)
- */
 export const getCourtServerData = async (
   googleCourtDetails: CourtDetails,
 ): Promise<CourtDocument> => {
@@ -195,6 +192,11 @@ export const createCourtGame = async (
     if (!currentUser)
       throw new Error("User must be logged in to create a game.");
 
+    const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+    const displayName = userSnap.exists()
+      ? userSnap.data().displayName || "Anonymous"
+      : "Anonymous";
+
     const gamesRef = collection(db, "games");
 
     const newGame = {
@@ -217,7 +219,8 @@ export const createCourtGame = async (
       players: {
         [currentUser.uid]: {
           userId: currentUser.uid,
-          team: "unassigned",
+          displayName,
+          team: "home",
           joinedAt: serverTimestamp(),
         },
       },

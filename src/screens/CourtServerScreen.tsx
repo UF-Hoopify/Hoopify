@@ -2,7 +2,6 @@ import { useNavigation } from "@react-navigation/native";
 import React from "react";
 import {
   Button,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -34,16 +33,14 @@ export const CourtServerScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-        <CourtServerThumbnail
-          name={activeCourt.name}
-          address={activeCourt.address}
-          rating={activeCourt.rating_google}
-          totalRatings={activeCourt.total_ratings_google}
-          photos={activeCourt.photos}
-        />
-        <CourtServerTab courtServerId={activeCourt.id} />
-      </ScrollView>
+      <CourtServerThumbnail
+        name={activeCourt.name}
+        address={activeCourt.address}
+        rating={activeCourt.rating_google}
+        totalRatings={activeCourt.total_ratings_google}
+        photos={activeCourt.photos}
+      />
+      <CourtServerTab courtServerId={activeCourt.id} />
     </View>
   );
 };
