@@ -1,35 +1,48 @@
-import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import React, { ReactElement } from "react";
+import {
+  ListRenderItem,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from "react-native";
 
 import { CourtServerGame } from "../../../types/CourtServerTypes";
 import CourtServerGameThumbnail from "./CourtServerGameThumbnail";
 
 interface CourtServerGameListContainerProps {
   courtServerGames: CourtServerGame[];
+  contentContainerStyle?: StyleProp<ViewStyle>;
+  ListHeaderComponent?: ReactElement | null;
 }
 
 const CourtServerGameListContainer = ({
   courtServerGames,
+  contentContainerStyle,
+  ListHeaderComponent,
 }: CourtServerGameListContainerProps) => {
-  if (courtServerGames.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No games yet. Create one!</Text>
-      </View>
-    );
-  }
+  const renderGame: ListRenderItem<CourtServerGame> = ({ item }) => (
+    <CourtServerGameThumbnail game={item} />
+  );
 
   return (
-    <ScrollView
+    <BottomSheetFlatList
+      data={courtServerGames}
+      keyExtractor={(item) => item.id}
+      renderItem={renderGame}
       style={styles.scrollContainer}
-      contentContainerStyle={styles.listContent}
+      contentContainerStyle={[styles.listContent, contentContainerStyle]}
+      ListHeaderComponent={ListHeaderComponent}
+      ListEmptyComponent={
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No games yet. Create one!</Text>
+        </View>
+      }
       showsVerticalScrollIndicator={true}
       nestedScrollEnabled={true}
-    >
-      {courtServerGames.map((game) => (
-        <CourtServerGameThumbnail key={game.id} game={game} />
-      ))}
-    </ScrollView>
+    />
   );
 };
 
@@ -42,7 +55,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   emptyContainer: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 40,

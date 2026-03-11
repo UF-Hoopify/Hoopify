@@ -1,3 +1,4 @@
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import CourtServerGame from "./CourtServerGame/CourtServerGame";
@@ -15,24 +16,33 @@ export const CourtServerTab = ({
 
   return (
     <View style={styles.container}>
-      {/* 1. THE CAROUSEL */}
       <TabCarousel
         tabs={TABS}
         activeTab={activeTab}
         onTabPress={setActiveTab}
       />
 
-      {/* 2. THE DETAILS (Placeholder Content) */}
       <View style={styles.detailsContainer}>
-        {activeTab === "Info" && <TabInfoContent />}
+        {activeTab === "Info" && (
+          <BottomSheetScrollView
+            contentContainerStyle={styles.infoContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <TabInfoContent />
+          </BottomSheetScrollView>
+        )}
         {activeTab === "Games" && (
           <CourtServerGame courtServerId={courtServerId} />
         )}
         {activeTab === "Chat" && (
-          <Text style={styles.placeholderText}>💬 Court Chat Room</Text>
+          <View style={styles.placeholderContainer}>
+            <Text style={styles.placeholderText}>Court Chat Room</Text>
+          </View>
         )}
         {activeTab === "Reviews" && (
-          <Text style={styles.placeholderText}>⭐ Reviews & Ratings</Text>
+          <View style={styles.placeholderContainer}>
+            <Text style={styles.placeholderText}>Reviews & Ratings</Text>
+          </View>
         )}
       </View>
     </View>
@@ -46,8 +56,14 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     flex: 1,
-    padding: 20,
-    minHeight: 300, // Forces space so you can see it scrolling
+    width: "100%",
+  },
+  infoContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+  placeholderContainer: {
+    flex: 1,
     alignItems: "center",
   },
   placeholderText: {

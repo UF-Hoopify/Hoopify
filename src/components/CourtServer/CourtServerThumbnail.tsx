@@ -22,6 +22,7 @@ interface CourtServerThumbnailProps {
   rating: number;
   totalRatings: number;
   photos: string[];
+  hideNavigationArrows?: boolean;
 }
 
 export const CourtServerThumbnail = ({
@@ -30,6 +31,7 @@ export const CourtServerThumbnail = ({
   rating,
   totalRatings,
   photos,
+  hideNavigationArrows = false,
 }: CourtServerThumbnailProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
@@ -85,7 +87,7 @@ export const CourtServerThumbnail = ({
       </View>
 
       {/* --- 3. ARROWS (Visible only if multiple photos) --- */}
-      {displayPhotos.length > 1 && (
+      {displayPhotos.length > 1 && !hideNavigationArrows && (
         <>
           {activeIndex > 0 && (
             <TouchableOpacity

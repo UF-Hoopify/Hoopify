@@ -1,19 +1,17 @@
+import BottomSheet from "@gorhom/bottom-sheet";
 import { useNavigation } from "@react-navigation/native";
-import React from "react";
-import {
-  Button,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import React, { useMemo, useState } from "react";
+import { Button, StatusBar, StyleSheet, Text, View } from "react-native";
 import { CourtServerTab } from "../components/CourtServer/CourtServerTab";
-import { CourtServerThumbnail } from "../components/CourtServer/CourtServerThumbnail"; // Ensure path is correct
+import { CourtServerThumbnail } from "../components/CourtServer/CourtServerThumbnail";
 import { useCourtContext } from "../context/CourtContext";
 
 export const CourtServerScreen = () => {
   const navigation = useNavigation<any>();
   const { activeCourt } = useCourtContext();
+  const snapPoints = useMemo(() => ["50%", "92%"], []);
+  const [isSheetExpanded, setIsSheetExpanded] = useState(false);
+
   if (!activeCourt) {
     return (
       <View style={styles.centerContainer}>
@@ -33,14 +31,27 @@ export const CourtServerScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
+      {/* Thumbnail fills the background */}
       <CourtServerThumbnail
         name={activeCourt.name}
         address={activeCourt.address}
         rating={activeCourt.rating_google}
         totalRatings={activeCourt.total_ratings_google}
         photos={activeCourt.photos}
+        hideNavigationArrows={isSheetExpanded}
       />
-      <CourtServerTab courtServerId={activeCourt.id} />
+
+      {/* Bottom sheet slides over the thumbnail */}
+      <BottomSheet
+        index={0}
+        snapPoints={snapPoints}
+        backgroundStyle={styles.sheetBackground}
+        handleIndicatorStyle={styles.sheetIndicator}
+        enableDynamicSizing={false}
+        onChange={(index) => setIsSheetExpanded(index === 1)}
+      >
+        <CourtServerTab courtServerId={activeCourt.id} />
+      </BottomSheet>
     </View>
   );
 };
@@ -50,25 +61,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
-  scrollContent: {
-    paddingBottom: 40,
+  sheetBackground: {
+    backgroundColor: "#121212",
   },
-  contentContainer: {
-    padding: 20,
-    alignItems: "center",
-    marginTop: 40,
+  sheetIndicator: {
+    backgroundColor: "#555",
   },
-  placeholderText: {
-    color: "#555",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  placeholderSubText: {
-    color: "#333",
-    fontSize: 14,
-  },
-
   centerContainer: {
     flex: 1,
     justifyContent: "center",
