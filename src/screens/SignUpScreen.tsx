@@ -36,6 +36,7 @@ export default function SignUpScreen({ navigation }: any) {
         email: email,
         location: "Gainesville, FL", // Defaulting to GNV for now
         photoURL: "https://i.pravatar.cc/300", 
+        friendsList: [],
         stats: {
           friends: 0,
           following: 0,
