@@ -1,7 +1,8 @@
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
-import React, { ReactElement } from "react";
+import React, { ReactElement, useState } from "react";
 import {
   ListRenderItem,
+  Modal,
   StyleProp,
   StyleSheet,
   Text,
@@ -10,6 +11,7 @@ import {
 } from "react-native";
 
 import { CourtServerGame } from "../../../types/CourtServerTypes";
+import CourtGameDetails from "./CourtGameDetails";
 import CourtServerGameThumbnail from "./CourtServerGameThumbnail";
 
 interface CourtServerGameListContainerProps {
@@ -23,26 +25,46 @@ const CourtServerGameListContainer = ({
   contentContainerStyle,
   ListHeaderComponent,
 }: CourtServerGameListContainerProps) => {
+  const [selectedGame, setSelectedGame] = useState<CourtServerGame | null>(
+    null,
+  );
+
   const renderGame: ListRenderItem<CourtServerGame> = ({ item }) => (
-    <CourtServerGameThumbnail game={item} />
+    <CourtServerGameThumbnail game={item} onPress={setSelectedGame} />
   );
 
   return (
-    <BottomSheetFlatList
-      data={courtServerGames}
-      keyExtractor={(item) => item.id}
-      renderItem={renderGame}
-      style={styles.scrollContainer}
-      contentContainerStyle={[styles.listContent, contentContainerStyle]}
-      ListHeaderComponent={ListHeaderComponent}
-      ListEmptyComponent={
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No games yet. Create one!</Text>
-        </View>
-      }
-      showsVerticalScrollIndicator={true}
-      nestedScrollEnabled={true}
-    />
+    <>
+      <BottomSheetFlatList
+        data={courtServerGames}
+        keyExtractor={(item: CourtServerGame) => item.id}
+        renderItem={renderGame}
+        style={styles.scrollContainer}
+        contentContainerStyle={[styles.listContent, contentContainerStyle]}
+        ListHeaderComponent={ListHeaderComponent}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No games yet. Create one!</Text>
+          </View>
+        }
+        showsVerticalScrollIndicator={true}
+        nestedScrollEnabled={true}
+      />
+
+      <Modal
+        visible={selectedGame !== null}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setSelectedGame(null)}
+      >
+        {selectedGame && (
+          <CourtGameDetails
+            game={selectedGame}
+            onBack={() => setSelectedGame(null)}
+          />
+        )}
+      </Modal>
+    </>
   );
 };
 

@@ -9,6 +9,7 @@ import {
 
 interface Props {
   game: CourtServerGame;
+  onPress?: (game: CourtServerGame) => void;
 }
 
 const AVATAR_SIZE = 36;
@@ -113,10 +114,6 @@ const formatTime = (timestamp: { toDate?: () => Date }): string => {
 const truncate = (str: string, max: number): string =>
   str.length > max ? str.slice(0, max) + "…" : str;
 
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
 /** Single player avatar circle */
 const PlayerAvatar = ({
   player,
@@ -188,7 +185,7 @@ const BasketballCourt = () => (
 // Main Component
 // ---------------------------------------------------------------------------
 
-const CourtServerGameThumbnail = ({ game }: Props) => {
+const CourtServerGameThumbnail = ({ game, onPress }: Props) => {
   const maxPerTeam = getMaxPerTeam(game.format);
   const layout = POSITION_LAYOUTS[game.format] ?? POSITION_LAYOUTS["5v5"];
 
@@ -285,7 +282,10 @@ const CourtServerGameThumbnail = ({ game }: Props) => {
             <Text style={styles.footerPillText}>{game.format}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.arrowButton}>
+        <TouchableOpacity
+          style={styles.arrowButton}
+          onPress={() => onPress?.(game)}
+        >
           <Text style={styles.arrowText}>→</Text>
         </TouchableOpacity>
       </View>
