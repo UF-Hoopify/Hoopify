@@ -25,6 +25,7 @@ import {
   GameVisibility,
   LightingLevel,
   NetType,
+  PlayerTeam,
   RimQuality,
   SurfaceType,
 } from "../types/CourtServerTypes";
@@ -197,14 +198,62 @@ export const changePlayerTeamStatus = async (
   newTeam: "home" | "away",
 ): Promise<void> => {
   const currentUser = auth.currentUser;
-  if (!currentUser)
-    throw new Error("User must be logged in to change team.");
+  if (!currentUser) throw new Error("User must be logged in to change team.");
 
   const gameRef = doc(db, "games", gameId);
 
   await updateDoc(gameRef, {
     [`players.${currentUser.uid}.team`]: newTeam,
   });
+};
+
+/**
+ * Adds the current user to a game.
+ * Assigns to whichever team (home/away) has fewer players.
+ * If both teams are full based on the game format, assigns as "unassigned" (in-queue).
+ */
+export const addPlayerToGame = async (
+  game: CourtServerGame,
+): Promise<PlayerTeam> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new Error("User must be logged in to join a game.");
+
+  const players = game.players ?? {};
+  const maxPerTeam = parseInt(game.format.split("v")[0], 10);
+
+  let homeCount = 0;
+  let awayCount = 0;
+  for (const p of Object.values(players)) {
+    if (p.team === "home") homeCount++;
+    else if (p.team === "away") awayCount++;
+  }
+
+  let assignedTeam: PlayerTeam;
+  if (homeCount < maxPerTeam) {
+    assignedTeam = "home";
+  } else if (awayCount < maxPerTeam) {
+    assignedTeam = "away";
+  } else {
+    assignedTeam = "unassigned";
+  }
+
+  const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+  const displayName = userSnap.exists()
+    ? userSnap.data().displayName || "Anonymous"
+    : "Anonymous";
+
+  const gameRef = doc(db, "games", game.id);
+
+  await updateDoc(gameRef, {
+    [`players.${currentUser.uid}`]: {
+      displayName,
+      team: assignedTeam,
+      joinedAt: serverTimestamp(),
+      status: "confirmed",
+    },
+  });
+
+  return assignedTeam;
 };
 
 interface CreateGameParams {

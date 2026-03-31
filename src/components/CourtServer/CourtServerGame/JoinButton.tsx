@@ -4,14 +4,16 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface JoinButtonProps {
   isInGame?: boolean;
+  onJoinGame?: () => void;
 }
 
-const JoinButton = ({ isInGame = false }: JoinButtonProps) => (
+const JoinButton = ({ isInGame = false, onJoinGame }: JoinButtonProps) => (
   <View style={styles.joinButtonContainer}>
     <TouchableOpacity
       style={[styles.joinButton, isInGame && styles.joinButtonDisabled]}
       activeOpacity={isInGame ? 1 : 0.8}
       disabled={isInGame}
+      onPress={onJoinGame}
     >
       <Ionicons
         name="basketball-outline"

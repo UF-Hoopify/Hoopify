@@ -1,7 +1,8 @@
-import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import React, { useState } from "react";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 
 import { auth } from "../../../config/firebaseConfig";
+import { addPlayerToGame } from "../../../services/CourtService";
 import { CourtServerGame } from "../../../types/CourtServerTypes";
 import CourtDetailsSection from "./CourtDetailsSection";
 import CourtOverlay from "./CourtOverlay";
@@ -17,7 +18,23 @@ interface CourtGameDetailsProps {
 
 const CourtGameDetails = ({ game, onBack }: CourtGameDetailsProps) => {
   const currentUserId = auth.currentUser?.uid;
-  const isInGame = !!(currentUserId && game.players?.[currentUserId]);
+  const [isInGame, setIsInGame] = useState(
+    !!(currentUserId && game.players?.[currentUserId]),
+  );
+
+  const handleJoinGame = async () => {
+    try {
+      const assignedTeam = await addPlayerToGame(game);
+      setIsInGame(true);
+
+      if (assignedTeam === "unassigned") {
+        Alert.alert("Queued", "Both teams are full. You've been added to the queue.");
+      }
+    } catch (error) {
+      console.error("Failed to join game:", error);
+      Alert.alert("Error", "Failed to join the game. Please try again.");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -34,7 +51,7 @@ const CourtGameDetails = ({ game, onBack }: CourtGameDetailsProps) => {
         <CourtDetailsSection game={game} />
       </ScrollView>
 
-      <JoinButton isInGame={isInGame} />
+      <JoinButton isInGame={isInGame} onJoinGame={handleJoinGame} />
     </View>
   );
 };
