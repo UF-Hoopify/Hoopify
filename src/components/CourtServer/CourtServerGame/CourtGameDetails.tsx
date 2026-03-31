@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 
 import { auth } from "../../../config/firebaseConfig";
-import { addPlayerToGame } from "../../../services/CourtService";
+import {
+  addPlayerToGame,
+  subscribeToGame,
+} from "../../../services/CourtService";
 import { CourtServerGame } from "../../../types/CourtServerTypes";
 import CourtDetailsSection from "./CourtDetailsSection";
 import CourtOverlay from "./CourtOverlay";
@@ -16,16 +19,26 @@ interface CourtGameDetailsProps {
   onBack: () => void;
 }
 
-const CourtGameDetails = ({ game, onBack }: CourtGameDetailsProps) => {
+const CourtGameDetails = ({
+  game: initialGame,
+  onBack,
+}: CourtGameDetailsProps) => {
   const currentUserId = auth.currentUser?.uid;
-  const [isInGame, setIsInGame] = useState(
-    !!(currentUserId && game.players?.[currentUserId]),
-  );
+  const [game, setGame] = useState(initialGame);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToGame(initialGame.id, (updatedGame) => {
+      setGame(updatedGame);
+    });
+
+    return () => unsubscribe();
+  }, [initialGame.id]);
+
+  const isInGame = !!(currentUserId && game.players?.[currentUserId]);
 
   const handleJoinGame = async () => {
     try {
       const assignedTeam = await addPlayerToGame(game);
-      setIsInGame(true);
 
       if (assignedTeam === "unassigned") {
         Alert.alert("Queued", "Both teams are full. You've been added to the queue.");

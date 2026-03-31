@@ -7,6 +7,7 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
@@ -171,6 +172,31 @@ export const fetchCourtGames = async (
     console.error("Error fetching court games:", error);
     throw new Error("Failed to load games. Please try again.");
   }
+};
+
+/**
+ * Subscribes to real-time updates for a single game document.
+ * Returns an unsubscribe function for cleanup.
+ */
+export const subscribeToGame = (
+  gameId: string,
+  onUpdate: (game: CourtServerGame) => void,
+  onError?: (error: Error) => void,
+) => {
+  const gameRef = doc(db, "games", gameId);
+
+  return onSnapshot(
+    gameRef,
+    (snapshot) => {
+      if (snapshot.exists()) {
+        onUpdate({ id: snapshot.id, ...snapshot.data() } as CourtServerGame);
+      }
+    },
+    (error) => {
+      console.error("Error listening to game:", error);
+      onError?.(error);
+    },
+  );
 };
 
 /**

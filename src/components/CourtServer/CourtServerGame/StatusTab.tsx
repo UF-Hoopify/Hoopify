@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { auth } from "../../../config/firebaseConfig";
@@ -74,6 +74,10 @@ const TeamPicker = ({
 const StatusTab = ({ game }: StatusTabProps) => {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [localPlayers, setLocalPlayers] = useState(game.players ?? {});
+
+  useEffect(() => {
+    setLocalPlayers(game.players ?? {});
+  }, [game.players]);
 
   const currentUserId = auth.currentUser?.uid;
   const players = Object.entries(localPlayers);
