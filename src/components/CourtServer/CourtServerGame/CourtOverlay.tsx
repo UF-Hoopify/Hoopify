@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import {
   StyleSheet,
@@ -250,9 +249,6 @@ const CourtOverlay = ({ game }: CourtOverlayProps) => {
               </Text>
             </View>
           </View>
-          <View style={styles.courtArrowButton}>
-            <Ionicons name="arrow-forward" size={18} color="#000" />
-          </View>
         </View>
       </View>
     </View>
@@ -379,14 +375,6 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   courtPillText: { color: "#AAA", fontSize: 12, fontWeight: "600" },
-  courtArrowButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#E68A2E",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   avatar: {
     position: "absolute",
     width: AVATAR_SIZE,
