@@ -224,11 +224,19 @@ const CourtServerGameThumbnail = ({ game, onPress }: Props) => {
             </Text>
           </View>
         </View>
-        {isLive && (
-          <View style={styles.liveBadge}>
-            <Text style={styles.liveText}>LIVE</Text>
-          </View>
-        )}
+        <View style={styles.headerRight}>
+          {isLive && (
+            <View style={styles.liveBadge}>
+              <Text style={styles.liveText}>LIVE</Text>
+            </View>
+          )}
+          <TouchableOpacity
+            style={styles.arrowButton}
+            onPress={() => onPress?.(game)}
+          >
+            <Text style={styles.arrowText}>→</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* ---- Court with player overlays ---- */}
@@ -282,12 +290,6 @@ const CourtServerGameThumbnail = ({ game, onPress }: Props) => {
             <Text style={styles.footerPillText}>{game.format}</Text>
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.arrowButton}
-          onPress={() => onPress?.(game)}
-        >
-          <Text style={styles.arrowText}>→</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -321,6 +323,11 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   headerLeft: { flex: 1 },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   venueLabel: {
     color: "#888",
     fontSize: 10,
