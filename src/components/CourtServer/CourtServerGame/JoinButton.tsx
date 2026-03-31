@@ -2,16 +2,31 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const JoinButton = () => (
+interface JoinButtonProps {
+  isInGame?: boolean;
+}
+
+const JoinButton = ({ isInGame = false }: JoinButtonProps) => (
   <View style={styles.joinButtonContainer}>
-    <TouchableOpacity style={styles.joinButton} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={[styles.joinButton, isInGame && styles.joinButtonDisabled]}
+      activeOpacity={isInGame ? 1 : 0.8}
+      disabled={isInGame}
+    >
       <Ionicons
         name="basketball-outline"
         size={20}
-        color="#000"
+        color={isInGame ? "#666" : "#000"}
         style={{ marginRight: 8 }}
       />
-      <Text style={styles.joinButtonText}>Join/Queue Game</Text>
+      <Text
+        style={[
+          styles.joinButtonText,
+          isInGame && styles.joinButtonTextDisabled,
+        ]}
+      >
+        {isInGame ? "Joined/Queued" : "Join/Queue Game"}
+      </Text>
     </TouchableOpacity>
   </View>
 );
@@ -35,10 +50,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  joinButtonDisabled: {
+    backgroundColor: "#2A2A2A",
+  },
   joinButtonText: {
     color: "#000",
     fontSize: 17,
     fontWeight: "700",
+  },
+  joinButtonTextDisabled: {
+    color: "#666",
   },
 });
 

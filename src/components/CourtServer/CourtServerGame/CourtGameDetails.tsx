@@ -1,6 +1,7 @@
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
+import { auth } from "../../../config/firebaseConfig";
 import { CourtServerGame } from "../../../types/CourtServerTypes";
 import CourtDetailsSection from "./CourtDetailsSection";
 import CourtOverlay from "./CourtOverlay";
@@ -15,6 +16,9 @@ interface CourtGameDetailsProps {
 }
 
 const CourtGameDetails = ({ game, onBack }: CourtGameDetailsProps) => {
+  const currentUserId = auth.currentUser?.uid;
+  const isInGame = !!(currentUserId && game.players?.[currentUserId]);
+
   return (
     <View style={styles.container}>
       <Header game={game} onBack={onBack} />
@@ -30,7 +34,7 @@ const CourtGameDetails = ({ game, onBack }: CourtGameDetailsProps) => {
         <CourtDetailsSection game={game} />
       </ScrollView>
 
-      <JoinButton />
+      <JoinButton isInGame={isInGame} />
     </View>
   );
 };
