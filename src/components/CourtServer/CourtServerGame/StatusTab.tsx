@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { auth } from "../../../config/firebaseConfig";
@@ -8,6 +8,7 @@ import {
 } from "../../../services/CourtService";
 import {
   CourtServerGame,
+  GamePlayer,
   PlayerStatus,
   PlayerTeam,
 } from "../../../types/CourtServerTypes";
@@ -17,6 +18,14 @@ import StatusPickerModal from "./StatusPickerModal";
 interface StatusTabProps {
   game: CourtServerGame;
 }
+
+type PlayerEntry = [string, GamePlayer];
+
+const sortByOldest = (a: PlayerEntry, b: PlayerEntry): number => {
+  const timeA = a[1].lastStatusSwitchedTime?.toMillis?.() ?? 0;
+  const timeB = b[1].lastStatusSwitchedTime?.toMillis?.() ?? 0;
+  return timeA - timeB;
+};
 
 const TeamPicker = ({
   currentTeam,
@@ -80,7 +89,26 @@ const StatusTab = ({ game }: StatusTabProps) => {
   }, [game.players]);
 
   const currentUserId = auth.currentUser?.uid;
-  const players = Object.entries(localPlayers);
+
+  const maxInGame = parseInt(game.format.split("v")[0], 10) * 2;
+
+  const { inGame, inQueue, backUps } = useMemo(() => {
+    const entries = Object.entries(localPlayers);
+
+    const readyPlayers = entries
+      .filter(([, p]) => p.status === "confirmed")
+      .sort(sortByOldest);
+
+    const notReadyPlayers = entries
+      .filter(([, p]) => p.status !== "confirmed")
+      .sort(sortByOldest);
+
+    return {
+      inGame: readyPlayers.slice(0, maxInGame),
+      inQueue: readyPlayers.slice(maxInGame),
+      backUps: notReadyPlayers,
+    };
+  }, [localPlayers, maxInGame]);
 
   const handleStatusSelect = async (newStatus: PlayerStatus) => {
     if (!currentUserId) return;
@@ -124,7 +152,8 @@ const StatusTab = ({ game }: StatusTabProps) => {
     }
   };
 
-  if (players.length === 0) {
+  const allPlayers = Object.entries(localPlayers);
+  if (allPlayers.length === 0) {
     return <Text style={styles.emptyText}>No players yet.</Text>;
   }
 
@@ -145,60 +174,76 @@ const StatusTab = ({ game }: StatusTabProps) => {
         ? styles.statusMaybeText
         : styles.statusDeclinedText;
 
-  return (
-    <View style={styles.statusList}>
-      {players.map(([userId, player]) => {
-        const isCurrentUser = userId === currentUserId;
+  const renderPlayerRow = ([userId, player]: PlayerEntry) => {
+    const isCurrentUser = userId === currentUserId;
 
-        const badge = (
-          <View style={[styles.statusBadge, getStatusStyle(player.status)]}>
-            <Text
-              style={[
-                styles.statusBadgeText,
-                getStatusTextStyle(player.status),
-              ]}
-            >
-              {getStatusLabel(player.status)}
+    const badge = (
+      <View style={[styles.statusBadge, getStatusStyle(player.status)]}>
+        <Text
+          style={[styles.statusBadgeText, getStatusTextStyle(player.status)]}
+        >
+          {getStatusLabel(player.status)}
+        </Text>
+      </View>
+    );
+
+    return (
+      <View key={userId} style={styles.playerRow}>
+        <View style={styles.playerAvatar}>
+          <Text style={styles.playerAvatarText}>
+            {player.displayName
+              ? player.displayName.charAt(0).toUpperCase()
+              : "?"}
+          </Text>
+        </View>
+
+        <View style={styles.playerInfo}>
+          <Text style={styles.playerName}>
+            {player.displayName || "Unknown"}
+          </Text>
+          <View style={styles.playerMetaRow}>
+            <TeamPicker
+              currentTeam={player.team}
+              isCurrentUser={isCurrentUser}
+              onTeamChange={handleTeamChange}
+            />
+            <Text style={styles.playerMeta}>
+              {" "}· {capitalizeFirst(player.status)}
             </Text>
           </View>
-        );
+        </View>
 
-        return (
-          <View key={userId} style={styles.playerRow}>
-            <View style={styles.playerAvatar}>
-              <Text style={styles.playerAvatarText}>
-                {player.displayName
-                  ? player.displayName.charAt(0).toUpperCase()
-                  : "?"}
-              </Text>
-            </View>
+        {isCurrentUser ? (
+          <TouchableOpacity onPress={() => setPickerVisible(true)}>
+            {badge}
+          </TouchableOpacity>
+        ) : (
+          badge
+        )}
+      </View>
+    );
+  };
 
-            <View style={styles.playerInfo}>
-              <Text style={styles.playerName}>
-                {player.displayName || "Unknown"}
-              </Text>
-              <View style={styles.playerMetaRow}>
-                <TeamPicker
-                  currentTeam={player.team}
-                  isCurrentUser={isCurrentUser}
-                  onTeamChange={handleTeamChange}
-                />
-                <Text style={styles.playerMeta}>
-                  {" "}· {capitalizeFirst(player.status)}
-                </Text>
-              </View>
-            </View>
+  const renderSection = (title: string, players: PlayerEntry[]) => {
+    if (players.length === 0) return null;
 
-            {isCurrentUser ? (
-              <TouchableOpacity onPress={() => setPickerVisible(true)}>
-                {badge}
-              </TouchableOpacity>
-            ) : (
-              badge
-            )}
-          </View>
-        );
-      })}
+    return (
+      <View>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+        </View>
+        <View style={styles.sectionContent}>
+          {players.map(renderPlayerRow)}
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.statusList}>
+      {renderSection("IN GAME", inGame)}
+      {renderSection("IN QUEUE", inQueue)}
+      {renderSection("BACK UPS", backUps)}
 
       {currentUserId && localPlayers[currentUserId] && (
         <StatusPickerModal
@@ -214,7 +259,7 @@ const StatusTab = ({ game }: StatusTabProps) => {
 
 const styles = StyleSheet.create({
   statusList: {
-    gap: 12,
+    gap: 0,
   },
   emptyText: {
     color: "#666",
@@ -222,9 +267,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 16,
   },
+  sectionHeader: {
+    backgroundColor: "#121212",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#2A2A2A",
+  },
+  sectionTitle: {
+    fontWeight: "bold",
+    color: "#A0A0A0",
+    textTransform: "uppercase",
+    fontSize: 12,
+  },
+  sectionContent: {
+    gap: 12,
+    paddingVertical: 12,
+  },
   playerRow: {
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 16,
   },
   playerAvatar: {
     width: 40,

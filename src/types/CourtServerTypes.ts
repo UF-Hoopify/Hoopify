@@ -52,7 +52,7 @@ export interface CourtDocument {
 export interface GamePlayer {
   status: PlayerStatus;
   team: PlayerTeam;
-  joinedAt: Timestamp;
+  lastStatusSwitchedTime: Timestamp;
   displayName: string;
   profilePic: string;
 }

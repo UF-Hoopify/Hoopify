@@ -210,10 +210,19 @@ export const changePlayerStatus = async (
   if (!currentUser) throw new Error("User must be logged in to change status.");
 
   const gameRef = doc(db, "games", gameId);
+  const gameSnap = await getDoc(gameRef);
+  const currentStatus = gameSnap.data()?.players?.[currentUser.uid]?.status;
 
-  await updateDoc(gameRef, {
+  const updates: Record<string, unknown> = {
     [`players.${currentUser.uid}.status`]: newStatus,
-  });
+  };
+
+  if (currentStatus !== newStatus) {
+    updates[`players.${currentUser.uid}.lastStatusSwitchedTime`] =
+      serverTimestamp();
+  }
+
+  await updateDoc(gameRef, updates);
 };
 
 /**
@@ -274,7 +283,7 @@ export const addPlayerToGame = async (
     [`players.${currentUser.uid}`]: {
       displayName,
       team: assignedTeam,
-      joinedAt: serverTimestamp(),
+      lastStatusSwitchedTime: serverTimestamp(),
       status: "confirmed",
     },
   });
@@ -331,7 +340,7 @@ export const createCourtGame = async (
           userId: currentUser.uid,
           displayName,
           team: "home",
-          joinedAt: serverTimestamp(),
+          lastStatusSwitchedTime: serverTimestamp(),
           status: "confirmed",
         },
       },
