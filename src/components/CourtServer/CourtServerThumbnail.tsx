@@ -76,15 +76,17 @@ export const CourtServerThumbnail = ({
       />
 
       {/* --- 2. TOP LAYER (Icons) --- */}
-      <View style={styles.topLayer}>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="share-outline" size={24} color="white" />
-        </TouchableOpacity>
+      {!hideNavigationArrows && (
+        <View style={styles.topLayer}>
+          <TouchableOpacity style={styles.iconButton}>
+            <Ionicons name="share-outline" size={24} color="white" />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="heart-outline" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.iconButton}>
+            <Ionicons name="heart-outline" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* --- 3. ARROWS (Visible only if multiple photos) --- */}
       {displayPhotos.length > 1 && !hideNavigationArrows && (
