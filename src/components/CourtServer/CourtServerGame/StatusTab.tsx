@@ -27,55 +27,88 @@ const sortByOldest = (a: PlayerEntry, b: PlayerEntry): number => {
   return timeA - timeB;
 };
 
+type Section = "inGame" | "inQueue" | "backUps";
+
 const TeamPicker = ({
   currentTeam,
   isCurrentUser,
   onTeamChange,
+  section,
+  homeHasSpace,
+  awayHasSpace,
 }: {
   currentTeam: PlayerTeam;
   isCurrentUser: boolean;
   onTeamChange: (team: "home" | "away") => void;
+  section: Section;
+  homeHasSpace: boolean;
+  awayHasSpace: boolean;
 }) => {
+  // Back Ups: show nothing
+  if (section === "backUps") return null;
+
+  // In Queue: show "In-Queue" label
+  if (section === "inQueue") {
+    return <Text style={styles.teamLabel}>In-Queue</Text>;
+  }
+
+  // In Game: non-current users just see their team label
   if (!isCurrentUser) {
     return (
       <Text style={styles.teamLabel}>{capitalizeFirst(currentTeam)}</Text>
     );
   }
 
+  // In Game current user: only show buttons for teams with space (or their current team)
+  const showHome = currentTeam === "home" || homeHasSpace;
+  const showAway = currentTeam === "away" || awayHasSpace;
+
+  // If only one option, show as label
+  if (showHome && !showAway) {
+    return <Text style={styles.teamLabel}>Home</Text>;
+  }
+  if (showAway && !showHome) {
+    return <Text style={styles.teamLabel}>Away</Text>;
+  }
+
   return (
     <View style={styles.teamPickerRow}>
-      <TouchableOpacity
-        style={[
-          styles.teamOption,
-          currentTeam === "home" && styles.teamOptionActive,
-        ]}
-        onPress={() => onTeamChange("home")}
-      >
-        <Text
+      {showHome && (
+        <TouchableOpacity
           style={[
-            styles.teamOptionText,
-            currentTeam === "home" && styles.teamOptionTextActive,
+            styles.teamOption,
+            currentTeam === "home" && styles.teamOptionActive,
           ]}
+          onPress={() => onTeamChange("home")}
         >
-          Home
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.teamOption,
-          currentTeam === "away" && styles.teamOptionActive,
-        ]}
-        onPress={() => onTeamChange("away")}
-      >
-        <Text
+          <Text
+            style={[
+              styles.teamOptionText,
+              currentTeam === "home" && styles.teamOptionTextActive,
+            ]}
+          >
+            Home
+          </Text>
+        </TouchableOpacity>
+      )}
+      {showAway && (
+        <TouchableOpacity
           style={[
-            styles.teamOptionText,
-            currentTeam === "away" && styles.teamOptionTextActive,
+            styles.teamOption,
+            currentTeam === "away" && styles.teamOptionActive,
           ]}
+          onPress={() => onTeamChange("away")}
         >
-          Away
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={[
+              styles.teamOptionText,
+              currentTeam === "away" && styles.teamOptionTextActive,
+            ]}
+          >
+            Away
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -90,7 +123,8 @@ const StatusTab = ({ game }: StatusTabProps) => {
 
   const currentUserId = auth.currentUser?.uid;
 
-  const maxInGame = parseInt(game.format.split("v")[0], 10) * 2;
+  const maxPerTeam = parseInt(game.format.split("v")[0], 10);
+  const maxInGame = maxPerTeam * 2;
 
   const { inGame, inQueue, backUps } = useMemo(() => {
     const entries = Object.entries(localPlayers);
@@ -157,6 +191,11 @@ const StatusTab = ({ game }: StatusTabProps) => {
     return <Text style={styles.emptyText}>No players yet.</Text>;
   }
 
+  const homeCount = inGame.filter(([, p]) => p.team === "home").length;
+  const awayCount = inGame.filter(([, p]) => p.team === "away").length;
+  const homeHasSpace = homeCount < maxPerTeam;
+  const awayHasSpace = awayCount < maxPerTeam;
+
   const getStatusLabel = (status: PlayerStatus) =>
     status === "confirmed" ? "READY" : status === "pending" ? "MAYBE" : "OUT";
 
@@ -174,7 +213,10 @@ const StatusTab = ({ game }: StatusTabProps) => {
         ? styles.statusMaybeText
         : styles.statusDeclinedText;
 
-  const renderPlayerRow = ([userId, player]: PlayerEntry) => {
+  const renderPlayerRow = (
+    [userId, player]: PlayerEntry,
+    section: Section,
+  ) => {
     const isCurrentUser = userId === currentUserId;
 
     const badge = (
@@ -206,6 +248,9 @@ const StatusTab = ({ game }: StatusTabProps) => {
               currentTeam={player.team}
               isCurrentUser={isCurrentUser}
               onTeamChange={handleTeamChange}
+              section={section}
+              homeHasSpace={homeHasSpace}
+              awayHasSpace={awayHasSpace}
             />
             <Text style={styles.playerMeta}>
               {" "}· {capitalizeFirst(player.status)}
@@ -224,7 +269,11 @@ const StatusTab = ({ game }: StatusTabProps) => {
     );
   };
 
-  const renderSection = (title: string, players: PlayerEntry[]) => {
+  const renderSection = (
+    title: string,
+    players: PlayerEntry[],
+    section: Section,
+  ) => {
     if (players.length === 0) return null;
 
     return (
@@ -233,7 +282,7 @@ const StatusTab = ({ game }: StatusTabProps) => {
           <Text style={styles.sectionTitle}>{title}</Text>
         </View>
         <View style={styles.sectionContent}>
-          {players.map(renderPlayerRow)}
+          {players.map((entry) => renderPlayerRow(entry, section))}
         </View>
       </View>
     );
@@ -241,9 +290,9 @@ const StatusTab = ({ game }: StatusTabProps) => {
 
   return (
     <View style={styles.statusList}>
-      {renderSection("IN GAME", inGame)}
-      {renderSection("IN QUEUE", inQueue)}
-      {renderSection("BACK UPS", backUps)}
+      {renderSection("IN GAME", inGame, "inGame")}
+      {renderSection("IN QUEUE", inQueue, "inQueue")}
+      {renderSection("BACK UPS", backUps, "backUps")}
 
       {currentUserId && localPlayers[currentUserId] && (
         <StatusPickerModal
