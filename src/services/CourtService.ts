@@ -172,6 +172,23 @@ export const fetchCourtGames = async (
   }
 };
 
+/**
+ * Updates the current user's player status in a game.
+ */
+export const changePlayerStatus = async (
+  gameId: string,
+  newStatus: "confirmed" | "pending" | "declined",
+): Promise<void> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new Error("User must be logged in to change status.");
+
+  const gameRef = doc(db, "games", gameId);
+
+  await updateDoc(gameRef, {
+    [`players.${currentUser.uid}.status`]: newStatus,
+  });
+};
+
 interface CreateGameParams {
   courtServerId: string;
   courtDescriptor?: string;
@@ -222,6 +239,7 @@ export const createCourtGame = async (
           displayName,
           team: "home",
           joinedAt: serverTimestamp(),
+          status: "confirmed",
         },
       },
     };
