@@ -2,14 +2,74 @@ import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { auth } from "../../../config/firebaseConfig";
-import { changePlayerStatus } from "../../../services/CourtService";
-import { CourtServerGame, PlayerStatus } from "../../../types/CourtServerTypes";
+import {
+  changePlayerStatus,
+  changePlayerTeamStatus,
+} from "../../../services/CourtService";
+import {
+  CourtServerGame,
+  PlayerStatus,
+  PlayerTeam,
+} from "../../../types/CourtServerTypes";
 import { capitalizeFirst } from "./courtGameDetailsHelpers";
 import StatusPickerModal from "./StatusPickerModal";
 
 interface StatusTabProps {
   game: CourtServerGame;
 }
+
+const TeamPicker = ({
+  currentTeam,
+  isCurrentUser,
+  onTeamChange,
+}: {
+  currentTeam: PlayerTeam;
+  isCurrentUser: boolean;
+  onTeamChange: (team: "home" | "away") => void;
+}) => {
+  if (!isCurrentUser) {
+    return (
+      <Text style={styles.teamLabel}>{capitalizeFirst(currentTeam)}</Text>
+    );
+  }
+
+  return (
+    <View style={styles.teamPickerRow}>
+      <TouchableOpacity
+        style={[
+          styles.teamOption,
+          currentTeam === "home" && styles.teamOptionActive,
+        ]}
+        onPress={() => onTeamChange("home")}
+      >
+        <Text
+          style={[
+            styles.teamOptionText,
+            currentTeam === "home" && styles.teamOptionTextActive,
+          ]}
+        >
+          Home
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.teamOption,
+          currentTeam === "away" && styles.teamOptionActive,
+        ]}
+        onPress={() => onTeamChange("away")}
+      >
+        <Text
+          style={[
+            styles.teamOptionText,
+            currentTeam === "away" && styles.teamOptionTextActive,
+          ]}
+        >
+          Away
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const StatusTab = ({ game }: StatusTabProps) => {
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -36,6 +96,26 @@ const StatusTab = ({ game }: StatusTabProps) => {
           ...prev[currentUserId],
           status: game.players[currentUserId].status,
         },
+      }));
+    }
+  };
+
+  const handleTeamChange = async (newTeam: "home" | "away") => {
+    if (!currentUserId) return;
+
+    const previousTeam = localPlayers[currentUserId].team;
+    setLocalPlayers((prev) => ({
+      ...prev,
+      [currentUserId]: { ...prev[currentUserId], team: newTeam },
+    }));
+
+    try {
+      await changePlayerTeamStatus(game.id, newTeam);
+    } catch (error) {
+      console.error("Failed to update team:", error);
+      setLocalPlayers((prev) => ({
+        ...prev,
+        [currentUserId]: { ...prev[currentUserId], team: previousTeam },
       }));
     }
   };
@@ -93,10 +173,16 @@ const StatusTab = ({ game }: StatusTabProps) => {
               <Text style={styles.playerName}>
                 {player.displayName || "Unknown"}
               </Text>
-              <Text style={styles.playerMeta}>
-                {capitalizeFirst(player.team)} ·{" "}
-                {capitalizeFirst(player.status)}
-              </Text>
+              <View style={styles.playerMetaRow}>
+                <TeamPicker
+                  currentTeam={player.team}
+                  isCurrentUser={isCurrentUser}
+                  onTeamChange={handleTeamChange}
+                />
+                <Text style={styles.playerMeta}>
+                  {" "}· {capitalizeFirst(player.status)}
+                </Text>
+              </View>
             </View>
 
             {isCurrentUser ? (
@@ -158,10 +244,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+  playerMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
   playerMeta: {
     color: "#888",
     fontSize: 12,
-    marginTop: 2,
+  },
+  teamLabel: {
+    color: "#888",
+    fontSize: 12,
+  },
+  teamPickerRow: {
+    flexDirection: "row",
+    gap: 4,
+  },
+  teamOption: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: "transparent",
+  },
+  teamOptionActive: {
+    backgroundColor: "rgba(230, 138, 46, 0.15)",
+  },
+  teamOptionText: {
+    color: "#888",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  teamOptionTextActive: {
+    color: "#E68A2E",
   },
   statusBadge: {
     borderRadius: 6,

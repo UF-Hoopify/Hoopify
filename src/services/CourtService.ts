@@ -189,6 +189,24 @@ export const changePlayerStatus = async (
   });
 };
 
+/**
+ * Updates the current user's team assignment in a game.
+ */
+export const changePlayerTeamStatus = async (
+  gameId: string,
+  newTeam: "home" | "away",
+): Promise<void> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser)
+    throw new Error("User must be logged in to change team.");
+
+  const gameRef = doc(db, "games", gameId);
+
+  await updateDoc(gameRef, {
+    [`players.${currentUser.uid}.team`]: newTeam,
+  });
+};
+
 interface CreateGameParams {
   courtServerId: string;
   courtDescriptor?: string;
