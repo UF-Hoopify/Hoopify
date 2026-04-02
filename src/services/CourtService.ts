@@ -149,12 +149,14 @@ export const fetchCourtGames = async (
   try {
     const gamesRef = collection(db, "games");
 
+    const now = Timestamp.now();
+
     const gamesQuery = query(
       gamesRef,
       where("courtServerId", "==", courtId),
       where("visibility", "==", visibility),
-      where("status", "in", ["upcoming", "live"]),
-      orderBy("meetupTime", "asc"),
+      where("endingTime", ">", now),
+      orderBy("endingTime", "asc"),
     );
 
     const querySnapshot = await getDocs(gamesQuery);
@@ -295,7 +297,7 @@ interface CreateGameParams {
   courtServerId: string;
   courtDescriptor?: string;
   meetupTime: Date;
-  endingTime?: Date;
+  endingTime: Date;
   format: GameFormat; // e.g., "3v3"
   visibility: GameVisibility;
   competitiveness: Competitiveness; // e.g., "casual"
@@ -323,16 +325,13 @@ export const createCourtGame = async (
       creatorId: currentUser.uid,
       createdAt: serverTimestamp(),
       meetupTime: Timestamp.fromDate(params.meetupTime),
-      ...(params.endingTime && {
-        endingTime: Timestamp.fromDate(params.endingTime), // optional
-      }),
+      endingTime: Timestamp.fromDate(params.endingTime),
       ...(params.courtDescriptor && {
         courtDescriptor: params.courtDescriptor,
       }),
       format: params.format,
       visibility: params.visibility,
       competitiveness: params.competitiveness,
-      status: "upcoming",
       description: params.description,
       invitedUserIds: params.inivtedUserIds || [],
       players: {

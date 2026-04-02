@@ -206,7 +206,9 @@ const CourtServerGameThumbnail = ({ game, onPress }: Props) => {
   const homeExtra = Math.max(0, homePlayers.length - maxPerTeam);
   const awayExtra = Math.max(0, awayPlayers.length - maxPerTeam);
 
-  const isLive = game.status === "in_progress" || game.status === "open";
+  const now = new Date();
+  const isLive =
+    game.meetupTime.toDate() <= now && now < game.endingTime.toDate();
 
   return (
     <View style={styles.card}>

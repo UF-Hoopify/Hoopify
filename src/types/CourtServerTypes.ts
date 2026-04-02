@@ -64,7 +64,7 @@ export interface CourtServerGame {
   createdAt: Timestamp;
 
   meetupTime: Timestamp;
-  endingTime?: Timestamp;
+  endingTime: Timestamp;
   courtDescriptor: string;
   format: GameFormat;
   visibility: GameVisibility;
