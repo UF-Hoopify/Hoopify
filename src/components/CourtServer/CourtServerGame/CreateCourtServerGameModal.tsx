@@ -59,8 +59,23 @@ export const CreateCourtServerGameModal = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+  const applyDateToTime = (date: Date, time: Date): Date => {
+    const result = new Date(time);
+    result.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+    return result;
+  };
+
+  const onDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === "ios");
+    if (selectedDate) {
+      setMeetupTime(applyDateToTime(selectedDate, meetupTime));
+      setEndingTime(applyDateToTime(selectedDate, endingTime));
+    }
+  };
 
   const onStartTimeChange = (
     event: DateTimePickerEvent,
@@ -73,6 +88,21 @@ export const CreateCourtServerGameModal = ({
   const onEndTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowEndPicker(Platform.OS === "ios");
     if (selectedDate) setEndingTime(selectedDate);
+  };
+
+  const formatDate = (date: Date): string => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+
+    return date.toLocaleDateString([], {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   const removeFriend = (id: string) => {
@@ -129,6 +159,27 @@ export const CreateCourtServerGameModal = ({
             value={courtDescriptor}
             onChangeText={setCourtDescriptor}
           />
+
+          {/* Section: Date */}
+          <Text style={[styles.sectionLabel, { marginTop: 20 }]}>Date</Text>
+          <TouchableOpacity
+            style={styles.timeButton}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={styles.timeButtonText}>
+              {formatDate(meetupTime)}
+            </Text>
+          </TouchableOpacity>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={meetupTime}
+              mode="date"
+              display="spinner"
+              minimumDate={new Date()}
+              onChange={onDateChange}
+            />
+          )}
 
           {/* Section: Time */}
           <Text style={[styles.sectionLabel, { marginTop: 20 }]}>Time</Text>

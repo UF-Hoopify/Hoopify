@@ -97,17 +97,37 @@ const getInitials = (name: string): string => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
+const toDate = (timestamp: { toDate?: () => Date }): Date =>
+  timestamp.toDate ? timestamp.toDate() : new Date(timestamp as unknown as number);
+
 const formatTime = (timestamp: { toDate?: () => Date }): string => {
   try {
-    const date = timestamp.toDate
-      ? timestamp.toDate()
-      : new Date(timestamp as unknown as number);
-    return date.toLocaleTimeString([], {
+    return toDate(timestamp).toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
   } catch {
     return "--:--";
+  }
+};
+
+const formatDay = (timestamp: { toDate?: () => Date }): string => {
+  try {
+    const date = toDate(timestamp);
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+
+    return date.toLocaleDateString([], {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return "";
   }
 };
 
@@ -215,11 +235,12 @@ const CourtServerGameThumbnail = ({ game, onPress }: Props) => {
       {/* ---- Header ---- */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.venueLabel}>TIME & VENUE</Text>
+          <Text style={styles.venueLabel}>DAY & TIME</Text>
+          <Text style={styles.dayText}>{formatDay(game.meetupTime)}</Text>
           <View style={styles.headerRow}>
             <View style={styles.clockDot} />
             <Text style={styles.timeText}>
-              {formatTime(game.meetupTime)}
+              {formatTime(game.meetupTime)} – {formatTime(game.endingTime)}
               {game.courtDescriptor
                 ? `  ·  ${truncate(game.courtDescriptor, 18)}`
                 : ""}
@@ -337,6 +358,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 4,
   },
+  dayText: { color: "#FFF", fontSize: 14, fontWeight: "700", marginBottom: 2 },
   headerRow: { flexDirection: "row", alignItems: "center" },
   clockDot: {
     width: 8,
