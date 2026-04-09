@@ -5,7 +5,7 @@ import CourtServerGame from "./CourtServerGame/CourtServerGame";
 import { TabCarousel } from "./TabCarousel";
 import TabInfoContent from "./TabInfoContent";
 
-const TABS = ["Games", "Info", "Chat", "Reviews"];
+const TABS = ["Games", "Info", "Reviews"];
 
 export const CourtServerTab = ({
   courtServerId,
@@ -33,11 +33,6 @@ export const CourtServerTab = ({
         )}
         {activeTab === "Games" && (
           <CourtServerGame courtServerId={courtServerId} />
-        )}
-        {activeTab === "Chat" && (
-          <View style={styles.placeholderContainer}>
-            <Text style={styles.placeholderText}>Court Chat Room</Text>
-          </View>
         )}
         {activeTab === "Reviews" && (
           <View style={styles.placeholderContainer}>

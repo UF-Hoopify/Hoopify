@@ -77,8 +77,34 @@ export interface CourtServerGame {
   players: Record<string, GamePlayer>;
 }
 
-// TODO: implement for Chat feature
-export interface ChatMessageDocument {}
+export interface ChatChannelDocument {
+  id: string;
+  name: string;
+  type: "text";
+  createdAt: Timestamp;
+}
+
+export interface ChatMessageDocument {
+  id: string;
+  text: string;
+  senderId: string;
+  senderName: string;
+  createdAt: Timestamp;
+}
+
+export interface CourtServerMember {
+  id: string;
+  displayName: string;
+  profilePic?: string;
+  joinedAt: Timestamp;
+  roles?: string[];
+}
+
+export interface CourtServerChatState {
+  channels: ChatChannelDocument[];
+  members: Record<string, CourtServerMember>;
+  activeChannelId: string | null;
+}
 
 // TODO: implement for Reviews feature
 export interface ReviewDocument {}

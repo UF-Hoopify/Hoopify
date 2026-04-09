@@ -1,7 +1,16 @@
 import BottomSheet from "@gorhom/bottom-sheet";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useMemo, useState } from "react";
-import { Button, StatusBar, StyleSheet, Text, View } from "react-native";
+import {
+  Button,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import CourtServerChat from "../components/CourtServer/CourtServerChat/CourtServerChat";
 import { CourtServerTab } from "../components/CourtServer/CourtServerTab";
 import { CourtServerThumbnail } from "../components/CourtServer/CourtServerThumbnail";
 import { useCourtContext } from "../context/CourtContext";
@@ -11,6 +20,7 @@ export const CourtServerScreen = () => {
   const { activeCourt } = useCourtContext();
   const snapPoints = useMemo(() => ["50%", "92%"], []);
   const [isSheetExpanded, setIsSheetExpanded] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   if (!activeCourt) {
     return (
@@ -24,6 +34,15 @@ export const CourtServerScreen = () => {
           onPress={() => navigation.navigate("MainTabs", { screen: "Explore" })}
         />
       </View>
+    );
+  }
+
+  if (showChat) {
+    return (
+      <CourtServerChat
+        courtServerId={activeCourt.id}
+        onBack={() => setShowChat(false)}
+      />
     );
   }
 
@@ -48,10 +67,22 @@ export const CourtServerScreen = () => {
         backgroundStyle={styles.sheetBackground}
         handleIndicatorStyle={styles.sheetIndicator}
         enableDynamicSizing={false}
+        keyboardBehavior="interactive"
+        keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
         onChange={(index) => setIsSheetExpanded(index === 1)}
       >
         <CourtServerTab courtServerId={activeCourt.id} />
       </BottomSheet>
+
+      {/* Floating chat button */}
+      <TouchableOpacity
+        style={styles.chatFab}
+        onPress={() => setShowChat(true)}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="chatbubble-ellipses" size={26} color="#FFF" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -85,5 +116,21 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 20,
     textAlign: "center",
+  },
+  chatFab: {
+    position: "absolute",
+    bottom: 24,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#333",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
   },
 });
