@@ -11,40 +11,54 @@ interface TabCarouselProps {
   tabs: string[];
   activeTab: string;
   onTabPress: (tab: string) => void;
+  onPlusPress?: () => void;
 }
 
 export const TabCarousel = ({
   tabs,
   activeTab,
   onTabPress,
+  onPlusPress,
 }: TabCarouselProps) => {
   return (
     <View style={styles.container}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.tabBarBackground}>
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab;
-            return (
-              <TouchableOpacity
-                key={tab}
-                style={[styles.tabItem, isActive && styles.activeTabItem]}
-                onPress={() => onTabPress(tab)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[styles.tabText, isActive && styles.activeTabText]}
+      <View style={styles.row}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.tabBarBackground}>
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab;
+              return (
+                <TouchableOpacity
+                  key={tab}
+                  style={[styles.tabItem, isActive && styles.activeTabItem]}
+                  onPress={() => onTabPress(tab)}
+                  activeOpacity={0.7}
                 >
-                  {tab}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </ScrollView>
+                  <Text
+                    style={[styles.tabText, isActive && styles.activeTabText]}
+                  >
+                    {tab}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
+
+        {onPlusPress && (
+          <TouchableOpacity
+            style={styles.plusButton}
+            onPress={onPlusPress}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.plusButtonText}>+</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
@@ -54,8 +68,26 @@ const styles = StyleSheet.create({
     marginVertical: 15,
     alignItems: "center",
   },
-  scrollContent: {
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
+    gap: 10,
+  },
+  scrollContent: {},
+  plusButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E68A2E",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  plusButtonText: {
+    color: "#000",
+    fontSize: 22,
+    fontWeight: "bold",
+    marginTop: -1,
   },
   tabBarBackground: {
     flexDirection: "row",

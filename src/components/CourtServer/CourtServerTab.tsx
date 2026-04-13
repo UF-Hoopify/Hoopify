@@ -1,7 +1,8 @@
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import CourtServerGame from "./CourtServerGame/CourtServerGame";
+import CourtServerReviews from "./CourtServerReviews/CourtServerReviews";
 import { TabCarousel } from "./TabCarousel";
 import TabInfoContent from "./TabInfoContent";
 
@@ -13,6 +14,13 @@ export const CourtServerTab = ({
   courtServerId: string;
 }) => {
   const [activeTab, setActiveTab] = useState("Info");
+  const [isCreateReviewVisible, setIsCreateReviewVisible] = useState(false);
+
+  const handlePlusPress = () => {
+    if (activeTab === "Reviews") {
+      setIsCreateReviewVisible(true);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -20,6 +28,7 @@ export const CourtServerTab = ({
         tabs={TABS}
         activeTab={activeTab}
         onTabPress={setActiveTab}
+        onPlusPress={activeTab === "Reviews" ? handlePlusPress : undefined}
       />
 
       <View style={styles.detailsContainer}>
@@ -35,9 +44,11 @@ export const CourtServerTab = ({
           <CourtServerGame courtServerId={courtServerId} />
         )}
         {activeTab === "Reviews" && (
-          <View style={styles.placeholderContainer}>
-            <Text style={styles.placeholderText}>Reviews & Ratings</Text>
-          </View>
+          <CourtServerReviews
+            courtServerId={courtServerId}
+            isCreateModalVisible={isCreateReviewVisible}
+            onCreateModalClose={() => setIsCreateReviewVisible(false)}
+          />
         )}
       </View>
     </View>
@@ -56,15 +67,5 @@ const styles = StyleSheet.create({
   infoContent: {
     paddingHorizontal: 20,
     paddingBottom: 24,
-  },
-  placeholderContainer: {
-    flex: 1,
-    alignItems: "center",
-  },
-  placeholderText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 40,
   },
 });

@@ -106,5 +106,15 @@ export interface CourtServerChatState {
   activeChannelId: string | null;
 }
 
-// TODO: implement for Reviews feature
-export interface ReviewDocument {}
+export interface ReviewDocument {
+  id: string;
+  userId: string;
+  userName: string;
+  userProfilePic: string;
+  rating: number; // 1-5
+  text: string;
+  imageUrls: string[];
+  likesCount: number;
+  likedBy: string[];
+  createdAt: Timestamp;
+}
