@@ -1,50 +1,70 @@
-# Welcome to your Expo app 👋
+# Hoopify 🏀
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Hoopify is a React Native / [Expo](https://expo.dev) mobile application for discovering and organizing pickup basketball games. This README walks you through the prerequisites, setup, and deployment workflow needed to get the app running locally or on a physical device.
 
-## Get started
+## Prerequisites
 
-1. Install dependencies
+Before you begin, make sure the following are installed and available:
 
-   ```bash
-   npm install
-   ```
+- **Node.js** — a version compatible with **Expo SDK 54**
+- **Google Places API key** — required to power location search and map features (or use the cloud-deployed QR code for quick testing without a key)
+- **Expo CLI** — invoked via `npx expo` (no global install required)
+- **EAS CLI** — install globally:
+  ```bash
+  npm install -g eas-cli
+  ```
+- **Expo Go** — install on your physical Android or iOS device from the Play Store or App Store
 
-2. Start the app
+## Deployment Workflow
 
-   ```bash
-   npx expo start
-   ```
+Our deployment workflow follows the steps below.
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Clone the repository from GitHub
 
 ```bash
-npm run reset-project
+git clone https://github.com/UF-Hoopify/Hoopify.git
+cd Hoopify
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Install dependencies
 
-## Learn more
+```bash
+npm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### 3. Add environment variables to initialize the Google Maps API key
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+For local testing, create a `.env` file at the project root and add the following line with a valid API key:
 
-## Join the community
+```bash
+EXPO_PUBLIC_GOOGLE_PLACES_KEY=<your-google-places-api-key>
+```
 
-Join our community of developers creating universal apps.
+### 4. Start the frontend application and backend service
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npx expo start
+```
+
+### 5. Run the application on your mobile phone using Expo Go
+
+After running `npx expo start`, Metro bundler launches and displays a QR code in the terminal. Scan the QR code with the **Expo Go** app on a physical Android or iOS device to open Hoopify.
+
+You'll also find options in the terminal output to open the app in:
+
+- a [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- an [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- an [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go)
+
+## Learn More
+
+To learn more about developing with Expo, see:
+
+- [Expo documentation](https://docs.expo.dev/) — fundamentals and advanced [guides](https://docs.expo.dev/guides)
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/) — a step-by-step tutorial for building a project that runs on Android, iOS, and the web
+
+## Community
+
+- [Expo on GitHub](https://github.com/expo/expo) — view the open-source platform and contribute
+- [Discord community](https://chat.expo.dev) — chat with Expo users and ask questions
