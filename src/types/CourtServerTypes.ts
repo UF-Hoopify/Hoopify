@@ -11,6 +11,18 @@ export type RimQuality = "single" | "double" | "breakaway" | "unknown";
 export type NetType = "chain" | "nylon" | "polyester" | "none" | "unknown";
 export type LightingLevel = "none" | "low" | "medium" | "high";
 
+export type GameFormat = "1v1" | "2v2" | "3v3" | "4v4" | "5v5";
+export type GameVisibility = "public" | "private";
+export type Competitiveness = "casual" | "moderate" | "competitive";
+export type GameState =
+  | "open"
+  | "full"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+export type PlayerStatus = "confirmed" | "pending" | "declined";
+export type PlayerTeam = "home" | "away" | "unassigned";
+
 export interface CourtDocument {
   id: string;
 
@@ -37,13 +49,72 @@ export interface CourtDocument {
   last_activity_at?: Timestamp;
 }
 
-// TODO: implement for Games feature
-export interface GameDocument {
-  id: string;
+export interface GamePlayer {
+  status: PlayerStatus;
+  team: PlayerTeam;
+  lastStatusSwitchedTime: Timestamp;
+  displayName: string;
+  profilePic: string;
 }
 
-// TODO: implement for Chat feature
-export interface ChatMessageDocument {}
+export interface CourtServerGame {
+  id: string;
+  courtServerId: string;
+  creatorId: string;
+  createdAt: Timestamp;
 
-// TODO: implement for Reviews feature
-export interface ReviewDocument {}
+  meetupTime: Timestamp;
+  endingTime: Timestamp;
+  courtDescriptor: string;
+  format: GameFormat;
+  visibility: GameVisibility;
+  competitiveness: Competitiveness;
+  status: GameState;
+  description: string;
+
+  invitedUserIds: string[];
+
+  players: Record<string, GamePlayer>;
+}
+
+export interface ChatChannelDocument {
+  id: string;
+  name: string;
+  type: "text";
+  createdAt: Timestamp;
+}
+
+export interface ChatMessageDocument {
+  id: string;
+  text: string;
+  senderId: string;
+  senderName: string;
+  createdAt: Timestamp;
+}
+
+export interface CourtServerMember {
+  id: string;
+  displayName: string;
+  profilePic?: string;
+  joinedAt: Timestamp;
+  roles?: string[];
+}
+
+export interface CourtServerChatState {
+  channels: ChatChannelDocument[];
+  members: Record<string, CourtServerMember>;
+  activeChannelId: string | null;
+}
+
+export interface ReviewDocument {
+  id: string;
+  userId: string;
+  userName: string;
+  userProfilePic: string;
+  rating: number; // 1-5
+  text: string;
+  imageUrls: string[];
+  likesCount: number;
+  likedBy: string[];
+  createdAt: Timestamp;
+}

@@ -1,20 +1,27 @@
+import BottomSheet from "@gorhom/bottom-sheet";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   Button,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+import CourtServerChat from "../components/CourtServer/CourtServerChat/CourtServerChat";
 import { CourtServerTab } from "../components/CourtServer/CourtServerTab";
-import { CourtServerThumbnail } from "../components/CourtServer/CourtServerThumbnail"; // Ensure path is correct
+import { CourtServerThumbnail } from "../components/CourtServer/CourtServerThumbnail";
 import { useCourtContext } from "../context/CourtContext";
 
 export const CourtServerScreen = () => {
   const navigation = useNavigation<any>();
   const { activeCourt } = useCourtContext();
+  const snapPoints = useMemo(() => ["50%", "92%"], []);
+  const [isSheetExpanded, setIsSheetExpanded] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
   if (!activeCourt) {
     return (
       <View style={styles.centerContainer}>
@@ -30,20 +37,52 @@ export const CourtServerScreen = () => {
     );
   }
 
+  if (showChat) {
+    return (
+      <CourtServerChat
+        courtServerId={activeCourt.id}
+        onBack={() => setShowChat(false)}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-        <CourtServerThumbnail
-          name={activeCourt.name}
-          address={activeCourt.address}
-          rating={activeCourt.rating_google}
-          totalRatings={activeCourt.total_ratings_google}
-          photos={activeCourt.photos}
-        />
-        <CourtServerTab />
-      </ScrollView>
+      {/* Thumbnail fills the background */}
+      <CourtServerThumbnail
+        name={activeCourt.name}
+        address={activeCourt.address}
+        rating={activeCourt.rating_google}
+        totalRatings={activeCourt.total_ratings_google}
+        photos={activeCourt.photos}
+        hideNavigationArrows={isSheetExpanded}
+      />
+
+      {/* Bottom sheet slides over the thumbnail */}
+      <BottomSheet
+        index={0}
+        snapPoints={snapPoints}
+        backgroundStyle={styles.sheetBackground}
+        handleIndicatorStyle={styles.sheetIndicator}
+        enableDynamicSizing={false}
+        keyboardBehavior="interactive"
+        keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
+        onChange={(index) => setIsSheetExpanded(index === 1)}
+      >
+        <CourtServerTab courtServerId={activeCourt.id} />
+      </BottomSheet>
+
+      {/* Floating chat button */}
+      <TouchableOpacity
+        style={styles.chatFab}
+        onPress={() => setShowChat(true)}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="chatbubble-ellipses" size={26} color="#FFF" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -53,25 +92,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
-  scrollContent: {
-    paddingBottom: 40,
+  sheetBackground: {
+    backgroundColor: "#121212",
   },
-  contentContainer: {
-    padding: 20,
-    alignItems: "center",
-    marginTop: 40,
+  sheetIndicator: {
+    backgroundColor: "#555",
   },
-  placeholderText: {
-    color: "#555",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  placeholderSubText: {
-    color: "#333",
-    fontSize: 14,
-  },
-
   centerContainer: {
     flex: 1,
     justifyContent: "center",
@@ -90,5 +116,21 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 20,
     textAlign: "center",
+  },
+  chatFab: {
+    position: "absolute",
+    bottom: 24,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#333",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
   },
 });

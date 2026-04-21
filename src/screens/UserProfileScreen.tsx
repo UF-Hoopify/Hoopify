@@ -22,7 +22,7 @@ import {
   View,
 } from "react-native";
 
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { auth, db } from "../config/firebaseConfig";
 
 interface UserProfile {
@@ -63,13 +63,11 @@ export default function UserProfileScreen() {
   const fetchUserProfile = useCallback(async () => {
     if (!TARGET_USER_ID) return;
     setIsLoading(true);
-
     try {
       const userDoc = await getDoc(doc(db, "users", TARGET_USER_ID));
 
       if (userDoc.exists()) {
         const userData = userDoc.data();
-
         const trueFriendsCount = userData.friendsList
           ? userData.friendsList.length
           : 0;
@@ -90,6 +88,7 @@ export default function UserProfileScreen() {
             gamesPlayed: trueGamesCount,
           },
         } as UserProfile);
+      } else {
       }
 
       if (!isViewingSelf && currentAuthId) {
@@ -252,8 +251,10 @@ export default function UserProfileScreen() {
   };
 
   // --- UI RENDER ---
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="small" color="#F97316" />
@@ -366,7 +367,7 @@ export default function UserProfileScreen() {
           </View>
         </ScrollView>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 

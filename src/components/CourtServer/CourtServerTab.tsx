@@ -1,33 +1,54 @@
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import CourtServerGame from "./CourtServerGame/CourtServerGame";
+import CourtServerReviews from "./CourtServerReviews/CourtServerReviews";
 import { TabCarousel } from "./TabCarousel";
 import TabInfoContent from "./TabInfoContent";
 
-const TABS = ["Games", "Info", "Chat", "Reviews"];
+const TABS = ["Games", "Info", "Reviews"];
 
-export const CourtServerTab = () => {
+export const CourtServerTab = ({
+  courtServerId,
+}: {
+  courtServerId: string;
+}) => {
   const [activeTab, setActiveTab] = useState("Info");
+  const [isCreateReviewVisible, setIsCreateReviewVisible] = useState(false);
+
+  const handlePlusPress = () => {
+    if (activeTab === "Reviews") {
+      setIsCreateReviewVisible(true);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* 1. THE CAROUSEL */}
       <TabCarousel
         tabs={TABS}
         activeTab={activeTab}
         onTabPress={setActiveTab}
+        onPlusPress={activeTab === "Reviews" ? handlePlusPress : undefined}
       />
 
-      {/* 2. THE DETAILS (Placeholder Content) */}
       <View style={styles.detailsContainer}>
-        {activeTab === "Info" && <TabInfoContent />}
-        {activeTab === "Games" && (
-          <Text style={styles.placeholderText}>🏀 Upcoming Games List</Text>
+        {activeTab === "Info" && (
+          <BottomSheetScrollView
+            contentContainerStyle={styles.infoContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <TabInfoContent />
+          </BottomSheetScrollView>
         )}
-        {activeTab === "Chat" && (
-          <Text style={styles.placeholderText}>💬 Court Chat Room</Text>
+        {activeTab === "Games" && (
+          <CourtServerGame courtServerId={courtServerId} />
         )}
         {activeTab === "Reviews" && (
-          <Text style={styles.placeholderText}>⭐ Reviews & Ratings</Text>
+          <CourtServerReviews
+            courtServerId={courtServerId}
+            isCreateModalVisible={isCreateReviewVisible}
+            onCreateModalClose={() => setIsCreateReviewVisible(false)}
+          />
         )}
       </View>
     </View>
@@ -41,14 +62,10 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     flex: 1,
-    padding: 20,
-    minHeight: 300, // Forces space so you can see it scrolling
-    alignItems: "center",
+    width: "100%",
   },
-  placeholderText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 40,
+  infoContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
   },
 });

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient"; // Ensure you have: npx expo install expo-linear-gradient
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -22,6 +22,7 @@ interface CourtServerThumbnailProps {
   rating: number;
   totalRatings: number;
   photos: string[];
+  hideNavigationArrows?: boolean;
 }
 
 export const CourtServerThumbnail = ({
@@ -30,9 +31,9 @@ export const CourtServerThumbnail = ({
   rating,
   totalRatings,
   photos,
+  hideNavigationArrows = false,
 }: CourtServerThumbnailProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
 
   const displayPhotos =
     photos.length > 0
@@ -46,18 +47,11 @@ export const CourtServerThumbnail = ({
     setActiveIndex(roundIndex);
   };
 
-  const scrollToIndex = (index: number) => {
-    if (index >= 0 && index < displayPhotos.length) {
-      flatListRef.current?.scrollToIndex({ index, animated: true });
-      setActiveIndex(index);
-    }
-  };
 
   return (
     <View style={styles.container}>
       {/* --- 1. CAROUSEL --- */}
       <FlatList
-        ref={flatListRef}
         data={displayPhotos}
         horizontal
         pagingEnabled
@@ -74,39 +68,19 @@ export const CourtServerThumbnail = ({
       />
 
       {/* --- 2. TOP LAYER (Icons) --- */}
-      <View style={styles.topLayer}>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="share-outline" size={24} color="white" />
-        </TouchableOpacity>
+      {!hideNavigationArrows && (
+        <View style={styles.topLayer}>
+          <TouchableOpacity style={styles.iconButton}>
+            <Ionicons name="share-outline" size={24} color="white" />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="heart-outline" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      {/* --- 3. ARROWS (Visible only if multiple photos) --- */}
-      {displayPhotos.length > 1 && (
-        <>
-          {activeIndex > 0 && (
-            <TouchableOpacity
-              style={[styles.arrowButton, styles.leftArrow]}
-              onPress={() => scrollToIndex(activeIndex - 1)}
-            >
-              <Ionicons name="chevron-back" size={24} color="white" />
-            </TouchableOpacity>
-          )}
-          {activeIndex < displayPhotos.length - 1 && (
-            <TouchableOpacity
-              style={[styles.arrowButton, styles.rightArrow]}
-              onPress={() => scrollToIndex(activeIndex + 1)}
-            >
-              <Ionicons name="chevron-forward" size={24} color="white" />
-            </TouchableOpacity>
-          )}
-        </>
+          <TouchableOpacity style={styles.iconButton}>
+            <Ionicons name="heart-outline" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
       )}
 
-      {/* --- 4. BOTTOM LAYER (Info + Dots) --- */}
+      {/* --- 3. BOTTOM LAYER (Info + Dots) --- */}
       <LinearGradient
         colors={["transparent", "rgba(0,0,0,0.8)"]}
         style={styles.bottomLayer}
@@ -172,20 +146,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  arrowButton: {
-    position: "absolute",
-    top: "50%",
-    marginTop: -20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 5,
-  },
-  leftArrow: { left: 10 },
-  rightArrow: { right: 10 },
   bottomLayer: {
     position: "absolute",
     bottom: 0,
