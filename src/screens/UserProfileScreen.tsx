@@ -1,14 +1,15 @@
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
-  arrayUnion,
   collection,
   doc,
   getCountFromServer,
   getDoc,
-  increment,
   query,
+  serverTimestamp,
+  setDoc,
   updateDoc,
   where,
+  deleteDoc,
 } from "firebase/firestore";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -40,8 +41,11 @@ interface UserProfile {
 export default function UserProfileScreen() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFriend, setIsFriend] = useState(false);
+  const [relationshipStatus, setRelationshipStatus] = useState<
+    "none" | "pending_sent" | "pending_received" | "accepted"
+  >("none");
   const [addingFriend, setAddingFriend] = useState(false);
+  const [respondingToRequest, setRespondingToRequest] = useState(false);
 
   const isMounted = useRef(true);
   const navigation = useNavigation();
@@ -52,6 +56,9 @@ export default function UserProfileScreen() {
 
   const TARGET_USER_ID = paramId || currentAuthId;
   const isViewingSelf = currentAuthId === TARGET_USER_ID;
+
+  const getFriendshipId = (a: string, b: string) =>
+  a < b ? `${a}_${b}` : `${b}_${a}`;
 
   const fetchUserProfile = useCallback(async () => {
     if (!TARGET_USER_ID) return;
@@ -86,12 +93,33 @@ export default function UserProfileScreen() {
       }
 
       if (!isViewingSelf && currentAuthId) {
-        const myDoc = await getDoc(doc(db, "users", currentAuthId));
-        if (myDoc.exists()) {
-          const myFriends = myDoc.data().friendsList || [];
-          setIsFriend(myFriends.includes(TARGET_USER_ID));
+        try {
+          const friendshipId = getFriendshipId(currentAuthId, TARGET_USER_ID);
+          const friendshipSnap = await getDoc(doc(db, "friends", friendshipId));
+
+          if (!friendshipSnap.exists()) {
+            setRelationshipStatus("none");
+          } else {
+            const data = friendshipSnap.data();
+
+            if (data.status === "accepted") {
+              setRelationshipStatus("accepted");
+            } else if (data.status === "pending") {
+              if (data.requesterId === currentAuthId) {
+                setRelationshipStatus("pending_sent");
+              } else {
+                setRelationshipStatus("pending_received");
+              }
+            } else {
+              setRelationshipStatus("none");
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching friendship status:", error);
+          setRelationshipStatus("none");
         }
       }
+
     } catch (err) {
       console.error("Error fetching user:", err);
     } finally {
@@ -118,25 +146,78 @@ export default function UserProfileScreen() {
 
   // --- ACTION HANDLERS ---
   const handleAddFriend = async () => {
-    if (!currentAuthId || !TARGET_USER_ID) return;
+    if (!currentAuthId || !TARGET_USER_ID || currentAuthId === TARGET_USER_ID) return;
+
     setAddingFriend(true);
 
     try {
-      // 1. Add them to YOUR friends list
-      await updateDoc(doc(db, "users", currentAuthId), {
-        friendsList: arrayUnion(TARGET_USER_ID),
-        "stats.friends": increment(1),
+      const friendshipId = getFriendshipId(currentAuthId, TARGET_USER_ID);
+      const friendshipRef = doc(db, "friends", friendshipId);
+      const friendshipSnap = await getDoc(friendshipRef);
+
+      if (!friendshipSnap.exists()) {
+        await setDoc(friendshipRef, {
+          user1Id: currentAuthId,
+          user2Id: TARGET_USER_ID,
+          requesterId: currentAuthId,
+          status: "pending",
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+
+        setRelationshipStatus("pending_sent");
+        Alert.alert("Request sent", `Friend request sent to ${user?.displayName}.`);
+        return;
+      }
+
+      const existing = friendshipSnap.data();
+
+      if (existing.status === "accepted") {
+        setRelationshipStatus("accepted");
+        Alert.alert("Already friends", `You are already friends with ${user?.displayName}.`);
+        return;
+      }
+
+      if (existing.status === "pending") {
+        if (existing.requesterId === currentAuthId) {
+          setRelationshipStatus("pending_sent");
+          Alert.alert("Request pending", "You already sent this friend request.");
+        } else {
+          setRelationshipStatus("pending_received");
+          Alert.alert("Pending request", "This user already sent you a friend request.");
+        }
+        return;
+      }
+
+      await updateDoc(friendshipRef, {
+        requesterId: currentAuthId,
+        status: "pending",
+        updatedAt: serverTimestamp(),
       });
 
-      // ⚠️ CRITICAL ISSUE STILL PRESENT:
-      // If Firestore Rules are locked down securely, this line will throw a permission denied error.
-      // You cannot write to another user's document directly.
-      await updateDoc(doc(db, "users", TARGET_USER_ID), {
-        friendsList: arrayUnion(currentAuthId),
-        "stats.friends": increment(1),
+      setRelationshipStatus("pending_sent");
+      Alert.alert("Request sent", `Friend request sent to ${user?.displayName}.`);
+    } catch (error) {
+      console.error("Error sending friend request:", error);
+      Alert.alert("Error", "Could not send friend request.");
+    } finally {
+      setAddingFriend(false);
+    }
+  };
+
+  const handleAcceptFriend = async () => {
+    if (!currentAuthId || !TARGET_USER_ID) return;
+
+    setRespondingToRequest(true);
+
+    try {
+      const friendshipId = getFriendshipId(currentAuthId, TARGET_USER_ID);
+      await updateDoc(doc(db, "friends", friendshipId), {
+        status: "accepted",
+        updatedAt: serverTimestamp(),
       });
 
-      setIsFriend(true);
+      setRelationshipStatus("accepted");
       setUser((prev) =>
         prev
           ? {
@@ -145,16 +226,28 @@ export default function UserProfileScreen() {
             }
           : null,
       );
-
-      Alert.alert("Success", `You are now friends with ${user?.displayName}!`);
     } catch (error) {
-      console.error(error);
-      Alert.alert(
-        "Error",
-        "Could not add friend. (Check Firestore Security Rules)",
-      );
+      console.error("Error accepting friend request:", error);
+      Alert.alert("Error", "Could not accept request.");
     } finally {
-      setAddingFriend(false);
+      setRespondingToRequest(false);
+    }
+  };
+
+  const handleRejectFriend = async () => {
+    if (!currentAuthId || !TARGET_USER_ID) return;
+
+    setRespondingToRequest(true);
+
+    try {
+      const friendshipId = getFriendshipId(currentAuthId, TARGET_USER_ID);
+      await deleteDoc(doc(db, "friends", friendshipId));
+      setRelationshipStatus("none");
+    } catch (error) {
+      console.error("Error rejecting friend request:", error);
+      Alert.alert("Error", "Could not reject request.");
+    } finally {
+      setRespondingToRequest(false);
     }
   };
 
@@ -178,10 +271,10 @@ export default function UserProfileScreen() {
             <Text style={styles.location}>{user.location}</Text>
           </View>
 
-          {/* ACTION BUTTONS */}
+          
           {!isViewingSelf && (
             <View style={styles.actionRow}>
-              {!isFriend && (
+              {relationshipStatus === "none" && (
                 <TouchableOpacity
                   style={styles.secondaryBtn}
                   onPress={handleAddFriend}
@@ -194,11 +287,44 @@ export default function UserProfileScreen() {
                   )}
                 </TouchableOpacity>
               )}
+
+              {relationshipStatus === "pending_sent" && (
+                <View style={styles.secondaryBtn}>
+                  <Text style={styles.secondaryBtnText}>Requested</Text>
+                </View>
+              )}
+
+              {relationshipStatus === "pending_received" && (
+                <>
+                  <TouchableOpacity
+                    style={styles.secondaryBtn}
+                    onPress={handleAcceptFriend}
+                    disabled={respondingToRequest}
+                  >
+                    {respondingToRequest ? (
+                      <ActivityIndicator color="#F97316" />
+                    ) : (
+                      <Text style={styles.secondaryBtnText}>Confirm</Text>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.secondaryBtn}
+                    onPress={handleRejectFriend}
+                    disabled={respondingToRequest}
+                  >
+                    <Text style={styles.secondaryBtnText}>Delete</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
               <TouchableOpacity
-                style={[styles.primaryBtn, isFriend && { flex: 1 }]}
+                style={[styles.primaryBtn, relationshipStatus === "accepted" && { flex: 1 }]}
                 onPress={handleMessagePress}
               >
-                <Text style={styles.primaryBtnText}>Message</Text>
+                <Text style={styles.primaryBtnText}>
+                  {relationshipStatus === "accepted" ? "Message" : "Message"}
+                </Text>
               </TouchableOpacity>
             </View>
           )}

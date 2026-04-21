@@ -1,6 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import {
+  collection,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -14,69 +20,123 @@ import {
 import { auth, db } from "../config/firebaseConfig";
 
 export default function AddFriendsScreen({ navigation }: any) {
-  const [friends, setFriends] = useState<any[]>([]);
-  const [others, setOthers] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [acceptedIds, setAcceptedIds] = useState<string[]>([]);
+  const [incomingIds, setIncomingIds] = useState<string[]>([]);
+  const [outgoingIds, setOutgoingIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const currentUserId = auth.currentUser?.uid;
+    if (!currentUserId) return;
+
+    let friendsA: any[] = [];
+    let friendsB: any[] = [];
+
+    const hydrate = async () => {
       try {
-        const currentUserId = auth.currentUser?.uid;
-        if (!currentUserId) return;
-
-        // 1. Get my friends list IDs
-        const myDoc = await getDoc(doc(db, "users", currentUserId));
-        const myFriendsIds = myDoc.exists()
-          ? myDoc.data().friendsList || []
-          : [];
-
-        // 2. Get all users
-        const querySnapshot = await getDocs(collection(db, "users"));
-        const allUsers = querySnapshot.docs
+        const userSnapshot = await getDocs(collection(db, "users"));
+        const users = userSnapshot.docs
           .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((u) => u.id !== currentUserId); // Exclude myself
+          .filter((u) => u.id !== currentUserId);
 
-        // 3. Split them up
-        const friendsList = allUsers.filter((u) => myFriendsIds.includes(u.id));
-        const othersList = allUsers.filter((u) => !myFriendsIds.includes(u.id));
-
-        setFriends(friendsList);
-        setOthers(othersList);
+        setAllUsers(users);
       } catch (error) {
         console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
       }
     };
-    fetchData();
+
+    const updateRelationshipState = () => {
+      const merged = [...friendsA, ...friendsB];
+      const accepted: string[] = [];
+      const incoming: string[] = [];
+      const outgoing: string[] = [];
+
+      for (const docSnap of merged) {
+        const data = docSnap.data();
+        const otherUserId =
+          data.user1Id === currentUserId ? data.user2Id : data.user1Id;
+
+        if (data.status === "accepted") {
+          accepted.push(otherUserId);
+        } else if (data.status === "pending") {
+          if (data.requesterId === currentUserId) {
+            outgoing.push(otherUserId);
+          } else {
+            incoming.push(otherUserId);
+          }
+        }
+      }
+
+      setAcceptedIds(accepted);
+      setIncomingIds(incoming);
+      setOutgoingIds(outgoing);
+      setLoading(false);
+    };
+
+    const q1 = query(
+      collection(db, "friends"),
+      where("user1Id", "==", currentUserId)
+    );
+
+    const q2 = query(
+      collection(db, "friends"),
+      where("user2Id", "==", currentUserId)
+    );
+
+    const unsub1 = onSnapshot(q1, (snapshot) => {
+      friendsA = snapshot.docs;
+      updateRelationshipState();
+    });
+
+    const unsub2 = onSnapshot(q2, (snapshot) => {
+      friendsB = snapshot.docs;
+      updateRelationshipState();
+    });
+
+    hydrate();
+
+    return () => {
+      unsub1();
+      unsub2();
+    };
   }, []);
 
-  // Filter based on search bar
-  const filteredFriends = friends.filter(
+  const filteredUsers = useMemo(() => {
+    return allUsers.filter(
+      (u) =>
+        u.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.username?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [allUsers, searchQuery]);
+
+  const incomingUsers = filteredUsers.filter((u) => incomingIds.includes(u.id));
+  const friends = filteredUsers.filter((u) => acceptedIds.includes(u.id));
+  const requestedUsers = filteredUsers.filter((u) => outgoingIds.includes(u.id));
+  const others = filteredUsers.filter(
     (u) =>
-      u.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.username?.toLowerCase().includes(searchQuery.toLowerCase()),
+      !acceptedIds.includes(u.id) &&
+      !incomingIds.includes(u.id) &&
+      !outgoingIds.includes(u.id)
   );
 
-  const filteredOthers = others.filter(
-    (u) =>
-      u.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.username?.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  // Setup the two sections
   const sections = [
     {
+      title: "Requests",
+      data: incomingUsers.length ? incomingUsers : [{ id: "empty-requests" }],
+    },
+    {
       title: "My Friends",
-      data:
-        filteredFriends.length > 0
-          ? filteredFriends
-          : [{ id: "empty-friends" }],
+      data: friends.length ? friends : [{ id: "empty-friends" }],
+    },
+    {
+      title: "Requested",
+      data: requestedUsers.length ? requestedUsers : [{ id: "empty-requested" }],
     },
     {
       title: "Add Friends",
-      data: filteredOthers,
+      data: others,
     },
   ];
 
@@ -90,7 +150,7 @@ export default function AddFriendsScreen({ navigation }: any) {
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Find Hoopers</Text>
-        <View style={{ width: 24 }}></View>
+        <View style={{ width: 24 }} />
       </View>
 
       <View style={styles.searchContainer}>
@@ -124,19 +184,31 @@ export default function AddFriendsScreen({ navigation }: any) {
               <Text style={styles.sectionTitle}>{title}</Text>
             </View>
           )}
-          renderItem={({ item }) => {
-            // Empty State Handling
-            if (item.id === "empty-friends") {
+          renderItem={({ item, section }) => {
+            if (item.id === "empty-requests") {
               return (
                 <View style={styles.emptySpacer}>
-                  <Text style={styles.emptyText}>
-                    No friends currently, add some below!
-                  </Text>
+                  <Text style={styles.emptyText}>No incoming requests.</Text>
                 </View>
               );
             }
 
-            // Normal User Row
+            if (item.id === "empty-friends") {
+              return (
+                <View style={styles.emptySpacer}>
+                  <Text style={styles.emptyText}>No friends yet.</Text>
+                </View>
+              );
+            }
+
+            if (item.id === "empty-requested") {
+              return (
+                <View style={styles.emptySpacer}>
+                  <Text style={styles.emptyText}>No outgoing requests.</Text>
+                </View>
+              );
+            }
+
             return (
               <TouchableOpacity
                 style={styles.userRow}
@@ -214,7 +286,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     marginRight: 16,
-    backgroundColor: "#2A1608", // Darkened the orange background slightly so it doesn't blind the user in dark mode
+    backgroundColor: "#2A1608",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
