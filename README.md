@@ -65,21 +65,6 @@ npx expo start
 
 After running `npx expo start`, Metro bundler launches and displays a QR code in the terminal. Scan the QR code with the **Expo Go** app on a physical Android or iOS device to open Hoopify.
 
-## Try the Live App
-
-Scan the appropriate QR code below with your device to open the latest live build of Hoopify. On iOS, use your iPhone camera (or scan from within Expo Go). On Android, scan from within the Expo Go app.
-
-<table align="center">
-  <tr>
-    <td align="center"><strong>iOS</strong></td>
-    <td align="center"><strong>Android</strong></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="assets/readme/ios-qr.png" alt="Hoopify iOS QR code" width="240" /></td>
-    <td align="center"><img src="assets/readme/android-qr.png" alt="Hoopify Android QR code" width="240" /></td>
-  </tr>
-</table>
-
 You'll also find options in the terminal output to open the app in:
 
 - a [development build](https://docs.expo.dev/develop/development-builds/introduction/)
