@@ -2,6 +2,21 @@
 
 Hoopify is a React Native / [Expo](https://expo.dev) mobile application for discovering and organizing pickup basketball games. This README walks you through the prerequisites, setup, and deployment workflow needed to get the app running locally or on a physical device.
 
+## Try the Live App
+
+Scan the appropriate QR code below with your device to open the latest live build of Hoopify. On iOS, use your iPhone camera (or scan from within Expo Go). On Android, scan from within the Expo Go app.
+
+<table align="center">
+  <tr>
+    <td align="center"><strong>iOS</strong></td>
+    <td align="center"><strong>Android</strong></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/readme/ios-qr.png" alt="Hoopify iOS QR code" width="240" /></td>
+    <td align="center"><img src="assets/readme/android-qr.png" alt="Hoopify Android QR code" width="240" /></td>
+  </tr>
+</table>
+
 ## Prerequisites
 
 Before you begin, make sure the following are installed and available:
